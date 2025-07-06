@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.env
+*.DS_Store
+
+# Virtualenv
+env/
+*.egg-info/
+pip-wheel-metadata/
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Django
+staticfiles/
+media/
+db.sqlite3
+
+# Postman
+*.postman_collection.json
