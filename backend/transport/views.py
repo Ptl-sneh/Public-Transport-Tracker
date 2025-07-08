@@ -83,3 +83,33 @@ def register_user(request):
         return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
     user = User.objects.create_user(username=username, password=password)
     return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+def find_routes(request):
+    source = request.GET.get('source')
+    destination = request.GET.get('destination')
+    
+    if not source or not destination:
+        return Response({'error': 'Source and destination are required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        source_stop = Stop.objects.get(name__icontains = source)
+        destination_stop = Stop.objects.get(name__icontains = destination)
+    except Stop.DoesNotExist:
+        return Response({'error': 'Source or destination stop not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    bus_routes = BusRoute.objects.filter(stops=source_stop).filter(stops=destination_stop)
+    bus_serializer = BusRouteSerializer(bus_routes, many = True)
+    
+    metro_routes = MetroRoute.objects.filter(stops = source_stop).filter(stops = destination_stop)
+    metro_serializer  = MetroRouteSerializer(metro_routes , many = True)
+    
+    return Response({
+        'bus_routes' : bus_serializer.data,
+        'metro_routes' : metro_serializer.data
+    })
+    
+
+    
+    
