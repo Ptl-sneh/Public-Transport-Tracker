@@ -1,26 +1,35 @@
-# Python
+# === PYTHON / DJANGO ===
 __pycache__/
 *.py[cod]
 *.sqlite3
-*.log
-*.env
-*.DS_Store
-
-# Virtualenv
-env/
-*.egg-info/
-pip-wheel-metadata/
-
-# VS Code
-.vscode/
-
-# PyCharm
-.idea/
-
-# Django
-staticfiles/
-media/
 db.sqlite3
+*.log
+env/
 
-# Postman
-*.postman_collection.json
+*.env
+/media
+/staticfiles
+
+# Django migrations (optional)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# === NODE / REACT ===
+node_modules/
+build/
+dist/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# React environment files
+.env.local
+.env.development
+.env.production
+
+# === OS / EDITORS ===
+.DS_Store
+.idea/
+*.iml
+*.swp
+.vscode/
