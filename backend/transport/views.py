@@ -5,9 +5,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from .serializers import UserRegisterSerializer,StopSerializer,BusRouteSerializer,MetroRouteSerializer,ScheduleSerializer,FareSerializer,FeedbackSerializer
-from .models import Stop,BusRoute,MetroRoute,Schedule,Fare,Feedback
+from .models import Stop,BusRoute,MetroRoute,Schedule,Fare,Feedback,BusStatus
 from textblob import TextBlob
-
+import random
 
 # Signup View
 class RegisterView(generics.CreateAPIView):
@@ -91,8 +91,8 @@ def find_routes(request):
     destination = request.GET.get('destination')
     
     if not source or not destination:
-        return Response({'error': 'Source and destination are required'}, status=status.HTTP_400_BAD_REQUEST)
-    
+        return Response({'error': 'Source and destination are required'}, status=status.HTTP_404_NOT_FOUND)
+
     try:
         source_stop = Stop.objects.get(name__icontains = source)
         destination_stop = Stop.objects.get(name__icontains = destination)
@@ -111,5 +111,44 @@ def find_routes(request):
     })
     
 
-    
-    
+@api_view(['GET'])
+def live_bus_location(request):
+    buses = []
+    bus_routes = BusRoute.objects.all()
+
+    for route in bus_routes:
+        bus_status, created = BusStatus.objects.get_or_create(route=route)
+
+        stops = list(route.stops.all().order_by('order'))
+
+        if not stops:
+            continue
+
+
+        current_stop = stops[bus_status.stop_index]
+
+
+        latitude = current_stop.latitude + random.uniform(-0.0005, 0.0005)
+        longitude = current_stop.longitude + random.uniform(-0.0005, 0.0005)
+
+        buses.append({
+            'route_name': route.route_name,
+            'current_stop': current_stop.name,
+            'latitude': latitude,
+            'longitude': longitude,
+        })
+
+
+        next_index = bus_status.stop_index + bus_status.direction
+
+        if next_index >= len(stops):
+            bus_status.direction = -1
+            next_index = len(stops) - 2
+        elif next_index < 0:
+            bus_status.direction = 1
+            next_index = 1
+
+        bus_status.stop_index = next_index
+        bus_status.save()
+
+    return Response({'buses': buses})

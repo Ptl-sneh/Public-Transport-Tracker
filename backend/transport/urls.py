@@ -11,5 +11,6 @@ urlpatterns = [
     path('feedbacks/', views.FeedbackList.as_view(), name='feedback_list'),
     path('feedback/', views.create_feedback, name='create-feedback'),
     path('register/',views.register_user,name = "register_user"),
-    path('find-route/',views.find_routes , name = 'find-route')
+    path('find-route/',views.find_routes , name = 'find-route'),
+    path('bus-location/',views.live_bus_location,name = 'live-bus-location'),
 ]

@@ -8,7 +8,10 @@ class Stop(models.Model):
     name = models.CharField(max_length=100)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    order = models.PositiveIntegerField(default=0)  # Lower = comes first
 
+    class Meta:
+        ordering = ['order']
     def __str__(self):
         return self.name
 
@@ -71,3 +74,10 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"{self.user.username} on {self.route_type.title()} {self.route_id}: {self.sentiment}"
+    
+class BusStatus(models.Model):
+    route = models.ForeignKey(BusRoute, on_delete = models.CASCADE)
+    stop_index = models.IntegerField(default=0)
+    direction = models.IntegerField(default=1)
+    
+
