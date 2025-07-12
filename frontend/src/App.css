@@ -1,2 +1,77 @@
 @import "tailwindcss";
 
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
+}
+
+/* Custom gray-750 color for better dark mode contrast */
+.bg-gray-750 {
+  background-color: #374151;
+}
+
+.dark .bg-gray-750 {
+  background-color: #374151;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow,
+    transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Dark mode transitions */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure proper dark mode styling */
+.dark {
+  color-scheme: dark;
+}
+
+/* Table styling improvements for dark mode */
+.dark table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.dark tbody tr:hover {
+  background-color: rgb(55 65 81 / 0.5);
+}
+
+/* Better contrast for colored backgrounds in dark mode */
+.dark .bg-blue-50 {
+  background-color: rgb(30 58 138 / 0.2);
+}
+
+.dark .bg-green-50 {
+  background-color: rgb(20 83 45 / 0.2);
+}
+
+.dark .bg-orange-50 {
+  background-color: rgb(154 52 18 / 0.2);
+}
+
+.dark .bg-red-50 {
+  background-color: rgb(153 27 27 / 0.2);
+}
+
+.dark .bg-purple-50 {
+  background-color: rgb(88 28 135 / 0.2);
+}
+
+
