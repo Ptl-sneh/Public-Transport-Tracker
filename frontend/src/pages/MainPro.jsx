@@ -8,10 +8,11 @@ import Landing from './Landing'
 const MainPro = () => {
     return (
         <Router>
-            <Routes>
+            <Routes>    
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/home" element={<Home />} />
                 <Route path="*" element={<div className="text-center text-red-500">404 Not Found</div>} />
             </Routes>
         </Router>
