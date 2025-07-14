@@ -2,7 +2,8 @@ import React from 'react'
 import { FaTrain } from 'react-icons/fa';
 import { useState } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { loginUser } from '../api/LoginApi';
 
 const Login = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
@@ -11,10 +12,22 @@ const Login = () => {
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-
-    const handleSubmit = (e) => {
+    const navigate = useNavigate()
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        
         console.log('Form submitted:', formData);
+        try {
+            const res = await loginUser(formData.username, formData.password)
+            localStorage.setItem('access' , res.data.access)
+            localStorage.setItem('refresh', res.data.refresh)
+            alert('login succesful')
+            navigate('/home')
+        } catch(err) {
+            const errMsg = err.res?.data?.detail || "Login failed. Please try again.";
+            alert(errMsg)
+        }
+
         // Handle login logic here
     };
     return (

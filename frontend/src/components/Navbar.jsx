@@ -1,8 +1,30 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect} from 'react';
+import { Link,Navigate } from 'react-router-dom';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [username, setUsername] = useState(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("access");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUsername(decoded.username || decoded.name);
+            } catch {
+                setUsername(null);
+            }
+        } else {
+            setUsername(null);
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        setUsername(null);
+        Navigate("/login");
+    };
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
@@ -30,16 +52,8 @@ const Navbar = () => {
                     {/* Auth Buttons */}
                     <div className="hidden md:flex items-center space-x-4">
 
-                        <Link to="/login">
-                            <button className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">
-                                Login
-                            </button>
-                        </Link>
-                        <Link to="/register">
-                            <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transform hover:scale-105 transition-all duration-300">
-                                Sign Up
-                            </button>
-                        </Link>
+                        <span className="text-gray-600 dark:text-gray-300">Hi, {username}</span>
+                        <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transform hover:scale-105 transition-all duration-300">Logout</button>
                     </div>
 
                     {/* Mobile Menu Toggle Button */}

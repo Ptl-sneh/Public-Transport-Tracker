@@ -2,11 +2,12 @@ import React from 'react'
 import { FaTrain , FaUserPlus} from 'react-icons/fa';
 import { useState } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { registerUser } from '../api/LoginApi';
 
 const Register = () => {
     const [formData, setFormData] = useState({
-        fullName: '',
+        username: '',
         email: '',
         password: '',
         confirmPassword: ''
@@ -18,11 +19,24 @@ const Register = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const navigate = useNavigate()
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Register form submitted:', formData);
-    // Add your register logic here
-      };
+
+        if (formData.password !== formData.confirmPassword) {
+            alert("Passwords do not match");
+            return;
+        }
+
+        try {
+            const res = await registerUser(formData.username, formData.email, formData.password);
+            alert("Registered successfully!");
+            navigate("/login"); // ✅ redirect to login page
+        } catch (err) {
+            const error = err.response?.data?.error || "Registration failed. Try again.";
+            alert(error);
+        }
+    };
     return (
         <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
             <div className="text-center py-12">
@@ -40,15 +54,15 @@ const Register = () => {
                 <div className="mt-8">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-2">
-                            <label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                                Full Name
+                            <label className="text-sm font-medium text-gray-700">
+                                User name
                             </label>
                             <input
-                                id="fullName"
-                                name="fullName"
+                                id="username"
+                                name="username"
                                 type="text"
-                                placeholder="Enter your full name"
-                                value={formData.fullName}
+                                placeholder="Enter your Username"
+                                value={formData.username}
                                 onChange={handleInputChange}
                                 required
                                 className="h-12 border border-gray-200 rounded px-3 w-full focus:border-orange-500 focus:ring-orange-500 transition-colors"
@@ -56,7 +70,7 @@ const Register = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-gray-700">
                                 Email
                             </label>
                             <input
@@ -72,7 +86,7 @@ const Register = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-gray-700">
                                 Password
                             </label>
                             <div className="relative">
@@ -101,7 +115,7 @@ const Register = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-gray-700">
                                 Confirm Password
                             </label>
                             <div className="relative">
