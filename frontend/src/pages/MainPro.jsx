@@ -4,6 +4,8 @@ import Home from './Home'
 import Login from './Login'
 import Register from './Register'
 import Landing from './Landing'
+import SRoutes from './SRoutes'
+import FRoutes from './FRoutes'
 
 const MainPro = () => {
     return (
@@ -13,6 +15,8 @@ const MainPro = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/home" element={<Home />} />
+                <Route path="/routes" element={<SRoutes />} />
+                <Route path="/findroute" element={<FRoutes />} />
                 <Route path="*" element={<div className="text-center text-red-500">404 Not Found</div>} />
             </Routes>
         </Router>
