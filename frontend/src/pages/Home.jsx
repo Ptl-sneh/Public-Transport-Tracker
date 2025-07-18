@@ -1,26 +1,22 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+});
 const Home = () => {
-    const [routeForm, setRouteForm] = useState({
-        source: "",
-        destination: "",
-    })
 
-    const handleRouteChange = (e) => {
-        setRouteForm({
-            ...routeForm,
-            [e.target.name]: e.target.value,
-        })
-    }
-
-    const handleRouteSubmit = (e) => {
-        e.preventDefault()
-        console.log("Route search:", routeForm)
-    }
     const quickAccessCards = [
         {
             title: "Live Tracker",
@@ -74,49 +70,26 @@ const Home = () => {
                 <p className="text-xl opacity-90">Your smart companion for city travel</p>
             </div>
 
-            <div className="py-12 px-4 max-w-4xl mx-auto">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 transition-colors duration-300">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Quick Route Finder</h2>
-                    <form onSubmit={handleRouteSubmit} className="space-y-6">
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source Stop</label>
-                                <input
-                                    type="text"
-                                    name="source"
-                                    value={routeForm.source}
-                                    onChange={handleRouteChange}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                                    placeholder="Enter starting point"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Destination Stop
-                                </label>
-                                <input
-                                    type="text"
-                                    name="destination"
-                                    value={routeForm.destination}
-                                    onChange={handleRouteChange}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                                    placeholder="Enter destination"
-                                />
-                            </div>
-                        </div>
-                        <div className="text-center">
-                            <Link href="/find-route">
-                                <button
-                                    type="submit"
-                                    className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                                >
-                                    Find Route
-                                </button>
-                            </Link>
-                        </div>
-                    </form>
+            <div className="py-12 px-4 max-w-6xl mx-auto">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Map View of Ahmedabad</h2>
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                    <MapContainer
+                        center={[23.0225, 72.5714]} // Ahmedabad coordinates
+                        zoom={13}
+                        scrollWheelZoom={true}
+                        className="w-full h-[500px] z-0"
+                    >
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+                        />
+                        <Marker position={[23.0225, 72.5714]}>
+                            <Popup>Ahmedabad Center</Popup>
+                        </Marker>
+                    </MapContainer>
                 </div>
             </div>
+
             <div className="max-w-6xl mx-auto">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12 text-center">Quick Access</h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -21,7 +21,6 @@ class BusRouteList(generics.ListAPIView):
 
 class MetroRouteList(generics.ListAPIView):
     queryset = MetroRoute.objects.all()
-    print("MetroRoute queryset:", queryset)
     serializer_class = MetroRouteSerializer
     
 class StopList(generics.ListAPIView):
@@ -73,6 +72,7 @@ class FeedbackList(generics.ListAPIView):
 
 
 @api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def register_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -83,6 +83,15 @@ def register_user(request):
         return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
     user = User.objects.create_user(username=username, password=password)
     return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register_user(request):
+    serializer = UserRegisterSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
