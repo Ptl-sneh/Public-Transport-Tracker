@@ -1,0 +1,406 @@
+[
+  {
+    "route_name": "1D Maninagar - Ghuma Gam",
+    "stops": []
+  },
+  {
+    "route_name": "12U Chandkheda Gam - Rabari Colony",
+    "stops": []
+  },
+  {
+    "route_name": "1S Chhipa Society - Ghuma Gam",
+    "stops": []
+  },
+  {
+    "route_name": "1S Jaimangal - Ghuma Gam",
+    "stops": []
+  },
+  {
+    "route_name": "1S Soma Textiles - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "1E Ghuma Gam - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "1E Ghuma Gam - Kashiram Textiles",
+    "stops": []
+  },
+  {
+    "route_name": "1E Maninagar - Soma Textiles",
+    "stops": []
+  },
+  {
+    "route_name": "1U Ghuma Gam - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "2D Odhav Ring Road - ISKCON",
+    "stops": []
+  },
+  {
+    "route_name": "4E Amba Township - Sarthi Bungalows",
+    "stops": []
+  },
+  {
+    "route_name": "2D Odhav Ring Road - LD Engg. College",
+    "stops": []
+  },
+  {
+    "route_name": "2S Jaimangal - ISKCON",
+    "stops": []
+  },
+  {
+    "route_name": "5U Vasna - Hanspura Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "6D Naroda S. T. Workshop - Narol",
+    "stops": []
+  },
+  {
+    "route_name": "11D Odhav Ring Road - LD Engg. College",
+    "stops": []
+  },
+  {
+    "route_name": "2E ISKCON - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "2U ISKCON - Odhav Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "2U LD Engg. College - Odhav Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "3D Maninagar - R.T.O Circle",
+    "stops": []
+  },
+  {
+    "route_name": "3D Maninagar - Chandkheda Gam",
+    "stops": []
+  },
+  {
+    "route_name": "3S Chhipa Society - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "3E Maninagar - Kashiram Textiles",
+    "stops": []
+  },
+  {
+    "route_name": "3U R.T.O Circle - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "3U Chandkheda Gam - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "4D LD Engg College - Amba Township",
+    "stops": []
+  },
+  {
+    "route_name": "4D LD Engg. College - Zundal Circle",
+    "stops": []
+  },
+  {
+    "route_name": "4S Pragatinagar - Zundal Circle",
+    "stops": []
+  },
+  {
+    "route_name": "4S Sarthi Bungalows - Amba Township",
+    "stops": []
+  },
+  {
+    "route_name": "4E Zundal Circle - Shastrinagar",
+    "stops": []
+  },
+  {
+    "route_name": "4U Amba Township - LD Engg College",
+    "stops": []
+  },
+  {
+    "route_name": "4U Zundal Circle - LD Engg. College",
+    "stops": []
+  },
+  {
+    "route_name": "5D Hanspura Ring Road - Vasna",
+    "stops": []
+  },
+  {
+    "route_name": "5S Geeta Gauri Cinema - Hanspura Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "5S Chhipa Society - Vasna",
+    "stops": []
+  },
+  {
+    "route_name": "5S Rameshwar Park - Vasna",
+    "stops": []
+  },
+  {
+    "route_name": "5S Naroda S. T. Workshop - Hanspura Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "17U South Bopal - Nehrunagar",
+    "stops": []
+  },
+  {
+    "route_name": "5E Hanspura Ring Road - Geeta Gauri Cinema",
+    "stops": []
+  },
+  {
+    "route_name": "5E Hanspura Ring Road - Naroda S. T. Workshop",
+    "stops": []
+  },
+  {
+    "route_name": "5E Vasna - Kashiram Textiles",
+    "stops": []
+  },
+  {
+    "route_name": "5E Vasna - Rameshwar Park",
+    "stops": []
+  },
+  {
+    "route_name": "6S Geeta Gauri Cinema - Naroda ST Workshop",
+    "stops": []
+  },
+  {
+    "route_name": "6E Narol - Rameshwar Park",
+    "stops": []
+  },
+  {
+    "route_name": "6S Rameshwar Park - Narol",
+    "stops": []
+  },
+  {
+    "route_name": "6E Naroda ST Workshop - Geeta Gauri Cinema",
+    "stops": []
+  },
+  {
+    "route_name": "6U Narol - Naroda S. T. Workshop",
+    "stops": []
+  },
+  {
+    "route_name": "9E Gota Vasant Nagar Township - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "7D Narol - Sarangpur Darwaja",
+    "stops": []
+  },
+  {
+    "route_name": "7D Sarkari Litho Press - Zundal Circle",
+    "stops": []
+  },
+  {
+    "route_name": "7S Odhav Talav - Narol",
+    "stops": []
+  },
+  {
+    "route_name": "7S Odhav Talav - Sarangpur Darwaja",
+    "stops": []
+  },
+  {
+    "route_name": "9U Gota Vasant Nagar Township - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "7E Narol - Odhav Talav",
+    "stops": []
+  },
+  {
+    "route_name": "7U Sarangpur Darwaja - Narol",
+    "stops": []
+  },
+  {
+    "route_name": "7U Zundal Circle - Sarkari Litho Press",
+    "stops": []
+  },
+  {
+    "route_name": "8D Naroda Gam - Bhadaj Circle",
+    "stops": []
+  },
+  {
+    "route_name": "8S Geeta Gauri Cinema - Naroda Gam",
+    "stops": []
+  },
+  {
+    "route_name": "8S Jaimangal - Bhadaj Circle",
+    "stops": []
+  },
+  {
+    "route_name": "8S SP Ring Road Approach - Naroda Gam",
+    "stops": []
+  },
+  {
+    "route_name": "8E Bhadaj Circle - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "8E Naroda Gam - Geeta Gauri Cinema",
+    "stops": []
+  },
+  {
+    "route_name": "12D Rameshwar Park - R.T.O Circle",
+    "stops": []
+  },
+  {
+    "route_name": "12D Rabari Colony - Chandkheda Gam",
+    "stops": []
+  },
+  {
+    "route_name": "12D Rabari Colony - R.T.O Circle",
+    "stops": []
+  },
+  {
+    "route_name": "8U Bhadaj Circle - Naroda Gam",
+    "stops": []
+  },
+  {
+    "route_name": "9D LD Engg College - Gota Vasant Nagar Township",
+    "stops": []
+  },
+  {
+    "route_name": "9D Maninagar - Gota Vasant Nagar Township",
+    "stops": []
+  },
+  {
+    "route_name": "9S Chhipa Society - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "9S Jaimangal - L.D Engg College",
+    "stops": []
+  },
+  {
+    "route_name": "9S Jaimangal - Maninagar",
+    "stops": []
+  },
+  {
+    "route_name": "9S Jaimangal - Gota Vasant Nagar Township",
+    "stops": []
+  },
+  {
+    "route_name": "9E Maninagar - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "9E Maninagar - Kashiram Textiles",
+    "stops": []
+  },
+  {
+    "route_name": "11U Ajit Mill - Odhav Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "11U LD Engg. College - Odhav Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "11U LD Engg.College - Soma Textiles",
+    "stops": []
+  },
+  {
+    "route_name": "12U R.T.O Circle - Rabari Colony",
+    "stops": []
+  },
+  {
+    "route_name": "12U R.T.O Circle - Rameshwar Park",
+    "stops": []
+  },
+  {
+    "route_name": "14D Odhav Ring Road - Sanand Circle",
+    "stops": []
+  },
+  {
+    "route_name": "14D Sarangpur Darwaja - Sanand Circle",
+    "stops": []
+  },
+  {
+    "route_name": "101 R.T.O(Circular)-",
+    "stops": []
+  },
+  {
+    "route_name": "14S Jaimangal - Sanand Circle",
+    "stops": []
+  },
+  {
+    "route_name": "14E Sanand Circle - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "14U Sanand Circle - Odhav Ring Road",
+    "stops": []
+  },
+  {
+    "route_name": "14U Sanand Circle - Sarangpur Darwaja",
+    "stops": []
+  },
+  {
+    "route_name": "15D Iskcon Cross Road - R.T.O Circle",
+    "stops": []
+  },
+  {
+    "route_name": "15D Iskcon Cross Road - Ahmedabad Domestic Airport",
+    "stops": []
+  },
+  {
+    "route_name": "15S Jaimangal - Iskcon Cross Road",
+    "stops": []
+  },
+  {
+    "route_name": "15S Pragatinagar - Airport",
+    "stops": []
+  },
+  {
+    "route_name": "15S Pragatinagar - R.T.O Circle",
+    "stops": []
+  },
+  {
+    "route_name": "15E Airport - Shastrinagar",
+    "stops": []
+  },
+  {
+    "route_name": "15E Iskcon Cross Road - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "15E R.T.O Circle - Shastrinagar",
+    "stops": []
+  },
+  {
+    "route_name": "15U R.T.O Circle - Iskcon Cross Road",
+    "stops": []
+  },
+  {
+    "route_name": "15U Ahmedabad Domestic Airport - Iskcon Cross Road",
+    "stops": []
+  },
+  {
+    "route_name": "16D Nehrunagar - Sanand Circle",
+    "stops": []
+  },
+  {
+    "route_name": "16S Jaimangal - Nehrunagar",
+    "stops": []
+  },
+  {
+    "route_name": "16S Jaimangal - Sanand Circle",
+    "stops": []
+  },
+  {
+    "route_name": "16E Nehrunagar - Jaimangal",
+    "stops": []
+  },
+  {
+    "route_name": "Bus Details (Maninagar - Ghuma Gam)",
+    "stops": []
+  }
+]

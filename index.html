@@ -1,0 +1,489 @@
+<div class="modal-dialog" style="width: 100%; margin: 15px auto">
+  <div class="col-md-12">
+    <div class="col-md-9 col-xs-12">
+      <div
+        class="sliderloader row"
+        data-ng-show="vm.showLoaderInMapTimeTable"
+        style="min-height: 767px"
+      >
+        <span style="position: relative"></span>
+      </div>
+      <div class="row">
+        <div
+          allowfullscreen=""
+          class="divAdjust leaflet-container leaflet-touch leaflet-retina leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom"
+          id="dvMap"
+          style="
+            background-color: powderblue;
+            width: 100%;
+            min-height: 767px;
+            z-index: 1;
+            position: relative;
+          "
+          tabindex="0"
+        >
+          <div
+            class="leaflet-pane leaflet-map-pane"
+            style="transform: translate3d(0px, 0px, 0px)"
+          >
+            <div class="leaflet-pane leaflet-tile-pane">
+              <div class="leaflet-layer" style="z-index: 1; opacity: 1">
+                <div
+                  class="leaflet-tile-container leaflet-zoom-animated"
+                  style="
+                    z-index: 20;
+                    transform: translate3d(0px, 0px, 0px) scale(1);
+                  "
+                >
+                  <img
+                    alt=""
+                    class="leaflet-tile leaflet-tile-loaded"
+                    role="presentation"
+                    src="https://b.tile.openstreetmap.org/15/23221/14967.png"
+                    style="
+                      width: 256px;
+                      height: 256px;
+                      transform: translate3d(-256px, -52px, 0px);
+                      opacity: 1;
+                    "
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="leaflet-pane leaflet-shadow-pane"></div>
+            <div class="leaflet-pane leaflet-overlay-pane"></div>
+            <div class="leaflet-pane leaflet-marker-pane"></div>
+            <div class="leaflet-pane leaflet-tooltip-pane"></div>
+            <div class="leaflet-pane leaflet-popup-pane"></div>
+            <div
+              class="leaflet-proxy leaflet-zoom-animated"
+              style="
+                transform: translate3d(5.94483e6px, 3.8316e6px, 0px)
+                  scale(16384);
+              "
+            ></div>
+          </div>
+          <div class="leaflet-control-container">
+            <div class="leaflet-top leaflet-left">
+              <div class="leaflet-control-zoom leaflet-bar leaflet-control">
+                <a
+                  aria-label="Zoom in"
+                  class="leaflet-control-zoom-in"
+                  href="#"
+                  role="button"
+                  title="Zoom in"
+                  >+</a
+                ><a
+                  aria-label="Zoom out"
+                  class="leaflet-control-zoom-out"
+                  href="#"
+                  role="button"
+                  title="Zoom out"
+                  >−</a
+                >
+              </div>
+            </div>
+            <div class="leaflet-top leaflet-right"></div>
+            <div class="leaflet-bottom leaflet-left"></div>
+            <div class="leaflet-bottom leaflet-right">
+              <div class="leaflet-control-attribution leaflet-control"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-xs-12 busstop-box">
+      <div class="row">
+        <div class="gridHead">
+          <i class="fa fa-bus"></i> Stop Details
+          <p class="ng-binding" style="font-size: 12px; margin-bottom: 0px">
+            Maninagar - Ghuma Gam - (1D)
+          </p>
+        </div>
+        <div
+          class="grid-body scrollbar"
+          id="style-6"
+          style="height: 698px !important; margin-bottom: 0px"
+        >
+          <!-- ngRepeat: stop in vm.allStopsForSelectedBus -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+,
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-body">
+      <button
+        aria-label="Close"
+        class="close"
+        data-dismiss="modal"
+        type="button"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+      <div class="container">
+        <form class="form-horizontal ng-pristine ng-valid">
+          <div class="row">
+            <div class="logo-login">
+              <img alt="." src="/Content/images/logo_login.png" />
+            </div>
+            <div class="input-group input-group-icon">
+              <input
+                class="ng-pristine ng-untouched ng-valid ng-empty"
+                data-ng-model="vm.userLogin.email"
+                placeholder="Enter User Name"
+                type="text"
+              />
+              <div class="input-icon"><i class="fa fa-envelope"></i></div>
+            </div>
+            <div class="input-group input-group-icon">
+              <input
+                class="ng-pristine ng-untouched ng-valid ng-empty"
+                data-ng-model="vm.userLogin.password"
+                placeholder="Enter Password"
+                type="password"
+              />
+              <div class="input-icon"><i class="fa fa-lock"></i></div>
+            </div>
+            <div class="input-group input-group-icon">
+              <span class="pull-left"
+                >New user
+                <a
+                  data-ng-click='vm.openRegistrationForm("/")'
+                  style="cursor: pointer"
+                  >Register</a
+                ></span
+              >
+              <span class="pull-right"
+                ><a
+                  data-ng-click='vm.openForgotPassword("/")'
+                  style="cursor: pointer"
+                  >Forgot Password?</a
+                ></span
+              >
+            </div>
+            <div class="input-group input-group-icon">
+              <button
+                class="btn cssForPrimaryButtn"
+                data-ng-click="vm.submitLoginForm()"
+                type="button"
+              >
+                LOGIN
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+,
+<div class="modal-dialog modal-md">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button
+        aria-label="Close"
+        class="close"
+        data-dismiss="modal"
+        type="button"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="modal-title" id="myModalLabelFeedBack">FeedBack</h4>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <form class="form-horizontal ng-pristine ng-valid">
+          <div class="col-md-6">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userFeedback.FullName"
+                  placeholder="Full Name"
+                  type="text"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userFeedback.PhoneNo"
+                  placeholder="Phone Number"
+                  type="text"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userFeedback.Email"
+                  placeholder="Email"
+                  type="text"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <textarea
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userFeedback.Comments"
+                  placeholder="Comments"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12 text-right">
+            <button
+              class="btn btn-default"
+              data-ng-click="vm.userFeedback={}"
+              type="reset"
+            >
+              <i class="fa fa-times"></i> Discard
+            </button>
+            <button
+              class="btn btn-primary"
+              data-ng-click="vm.submitFeedbackForm()"
+              type="button"
+            >
+              <i class="fa fa-pencil"></i> Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+,
+<div class="modal-dialog modal-sm">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button
+        aria-label="Close"
+        class="close"
+        data-dismiss="modal"
+        type="button"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="modal-title" id="myModalLabelLogin">Forgot Password</h4>
+    </div>
+    <div class="modal-body">
+      <div>
+        <form class="form-horizontal ng-pristine ng-valid ng-valid-email">
+          <div class="form-group">
+            <div class="col-sm-12">
+              <input
+                class="form-control ng-pristine ng-untouched ng-valid ng-empty ng-valid-email"
+                data-ng-model="vm.forgotPasswordObject.email"
+                placeholder="Email"
+                type="email"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-12">
+              <button
+                class="btn btn-block btn-primary"
+                data-ng-click="vm.forgotPassword()"
+                type="button"
+              >
+                <i class="fa fa-sign-in"></i> Submit
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+,
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button
+        aria-label="Close"
+        class="close"
+        data-ng-click="vm.cancelRegistrationForm()"
+        type="button"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+      <h4 class="modal-title" id="myModalLabelRegister">Registration</h4>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <form class="form-horizontal ng-pristine ng-valid ng-valid-email">
+          <div class="col-md-12">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userRegistration.name"
+                  placeholder="Name"
+                  type="text"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userRegistration.phoneNo"
+                  placeholder="Mobile"
+                  type="text"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty ng-valid-email"
+                  data-ng-model="vm.userRegistration.email"
+                  placeholder="Email"
+                  type="email"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <div class="radio">
+                  <p><strong>Gender:</strong></p>
+                  <label style="white-space: nowrap; margin-right: 20px"
+                    ><input
+                      class="ng-pristine ng-untouched ng-valid ng-not-empty"
+                      data-ng-model="vm.userRegistration.gender"
+                      name="gender"
+                      style="display: inline-block; position: unset"
+                      type="radio"
+                      value="male" />
+                    Male<br
+                  /></label>
+                  <label style="white-space: nowrap"
+                    ><input
+                      class="ng-pristine ng-untouched ng-valid ng-not-empty"
+                      data-ng-model="vm.userRegistration.gender"
+                      name="gender"
+                      style="display: inline-block; position: unset"
+                      type="radio"
+                      value="female" />
+                    Female<br
+                  /></label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userRegistration.password"
+                  placeholder="Password"
+                  type="password"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group">
+              <div class="col-sm-12">
+                <input
+                  class="form-control ng-pristine ng-untouched ng-valid ng-empty"
+                  data-ng-model="vm.userRegistration.ConfirmPassword"
+                  placeholder="Confirm Password"
+                  type="password"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12 text-right">
+            <button
+              class="btn btn-default"
+              data-ng-click="vm.cancelRegistrationForm()"
+              type="button"
+            >
+              <i class="fa fa-times"></i> Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              data-ng-click="vm.submitRegistrationForm()"
+              type="button"
+            >
+              <i class="fa fa-pencil"></i> Register
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+,
+<div class="modal-dialog modal-md">
+  <div class="main_box" style="background-color: white">
+    <button
+      aria-label="Close"
+      class="close"
+      data-dismiss="modal"
+      style="position: absolute; right: 15px; top: 8px"
+      type="button"
+    >
+      <span aria-hidden="true">×</span>
+    </button>
+    <div style="padding: 15px; border-bottom: #ccc 1px solid">
+      <span class="licenseInfoHeader ng-binding"></span><br />
+      <span class="licenseInfo ng-binding"></span>
+    </div>
+    <div style="padding: 15px; font-size: 11px">
+      <p class="text_01"></p>
+      <table style="width: 100%">
+        <tbody>
+          <tr>
+            <td class="text_b" height="24">Product Name:</td>
+            <td>BRTS Commuter Portal</td>
+          </tr>
+          <tr>
+            <td class="text_b" height="24">Licensed To:</td>
+            <td>Smart City Ahmedabad Development Limited</td>
+          </tr>
+          <tr>
+            <td class="text_b" height="24">Valid From:</td>
+            <td class="ng-binding"></td>
+          </tr>
+          <tr>
+            <td class="text_b" height="24">Valid Till:</td>
+            <td class="ng-binding"></td>
+          </tr>
+          <tr>
+            <td class="text_b" height="24">Version:</td>
+            <td class="ng-binding"></td>
+          </tr>
+          <tr>
+            <td class="text_b" height="24" valign="top">Signature:</td>
+            <td
+              class="ng-binding"
+              style="word-wrap: break-word; width: 445px; float: left"
+            ></td>
+          </tr>
+        </tbody>
+      </table>
+      <p></p>
+    </div>
+  </div>
+</div>
