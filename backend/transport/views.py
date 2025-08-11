@@ -4,24 +4,30 @@ from rest_framework import generics,permissions,status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from .serializers import UserRegisterSerializer,StopSerializer,BusRouteSerializer,MetroRouteSerializer,ScheduleSerializer,FareSerializer,FeedbackSerializer
-from .models import Stop,BusRoute,MetroRoute,Schedule,Fare,Feedback,BusStatus
+from .serializers import UserRegisterSerializer,StopSerializer,BusRouteSerializer,ScheduleSerializer,FareSerializer,FeedbackSerializer,RouteStopSerializer
+from .models import Stop,BusRoute,Schedule,Fare,Feedback,BusStatus,RouteStop,BusTrip
 from textblob import TextBlob
 import random
+from django.contrib.contenttypes.models import ContentType
 
 # Signup View
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
-    
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register_user(request):
+    serializer = UserRegisterSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class BusRouteList(generics.ListAPIView):
     queryset = BusRoute.objects.all()
     serializer_class = BusRouteSerializer
-
-class MetroRouteList(generics.ListAPIView):
-    queryset = MetroRoute.objects.all()
-    serializer_class = MetroRouteSerializer
     
 class StopList(generics.ListAPIView):
     queryset = Stop.objects.all()
@@ -35,6 +41,10 @@ class FareList(generics.ListAPIView):
     queryset = Fare.objects.all()
     serializer_class = FareSerializer
     
+class FeedbackListCreateView(generics.ListCreateAPIView):
+    queryset = Feedback.objects.all().order_by('-created_at')
+    serializer_class = FeedbackSerializer
+    
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def create_feedback(request):
@@ -42,7 +52,7 @@ def create_feedback(request):
     route_type = request.data.get('route_type')
     route_id = request.data.get('route_id')
 
-    # Sentiment Analysis using TextBlob
+    # Sentiment Analysis
     sentiment_analysis = TextBlob(comment)
     polarity = sentiment_analysis.sentiment.polarity
     if polarity > 0:
@@ -52,46 +62,26 @@ def create_feedback(request):
     else:
         sentiment = 'Neutral'
 
+    # Determine route model
+    if route_type == 'bus':
+        model = BusRoute
+    else:
+        return Response({'error': 'Invalid route_type'}, status=400)
+
+    if not model.objects.filter(id=route_id).exists():
+        return Response({'error': 'Route not found'}, status=404)
+
+    content_type = ContentType.objects.get_for_model(model)
     feedback = Feedback.objects.create(
         user=request.user,
-        route_type=route_type,
-        route_id=route_id,
-        comment=comment,
-        sentiment=sentiment
+        content_type=content_type,
+        object_id=route_id,
+        rating=request.data.get('rating', 0),
+        comment=comment
     )
 
     serializer = FeedbackSerializer(feedback)
     return Response(serializer.data)
-
-
-class FeedbackList(generics.ListAPIView):
-    queryset = Feedback.objects.all()
-    serializer_class = FeedbackSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-
-
-@api_view(['POST'])
-@permission_classes([permissions.AllowAny])
-def register_user(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    
-    if not username or not password:
-        return Response({"error":"username and password is required"}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    user = User.objects.create_user(username=username, password=password)
-    return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
-
-@api_view(['POST'])
-@permission_classes([permissions.AllowAny])
-def register_user(request):
-    serializer = UserRegisterSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -103,22 +93,36 @@ def find_routes(request):
         return Response({'error': 'Source and destination are required'}, status=status.HTTP_404_NOT_FOUND)
 
     try:
-        source_stop = Stop.objects.get(name__icontains = source)
-        destination_stop = Stop.objects.get(name__icontains = destination)
+        source_stop = Stop.objects.get(name__iexact=source)
+        destination_stop = Stop.objects.get(name__iexact=destination)
     except Stop.DoesNotExist:
         return Response({'error': 'Source or destination stop not found'}, status=status.HTTP_404_NOT_FOUND)
 
     bus_routes = BusRoute.objects.filter(stops=source_stop).filter(stops=destination_stop)
     bus_serializer = BusRouteSerializer(bus_routes, many = True)
     
-    metro_routes = MetroRoute.objects.filter(stops = source_stop).filter(stops = destination_stop)
-    metro_serializer  = MetroRouteSerializer(metro_routes , many = True)
-    
     return Response({
         'bus_routes' : bus_serializer.data,
-        'metro_routes' : metro_serializer.data
     })
     
+@api_view(['GET'])
+def route_schedule(request,route_type,route_id):
+    try:
+        if route_type == 'bus':
+            route = BusRoute.objects.get(id = route_id)
+        else:
+            return Response({'error':'Invalid Route type'},status = 400)
+
+        schedules = Schedule.objects.filter(route_type=route_type,route_id=route_id).select_related('stop')
+        schedule_data = ScheduleSerializer(schedules,many = True).data
+        
+        return Response({
+            'route_name' : route.route_name,
+            'schedules' : schedule_data
+        })
+    except(BusRoute.DoesNotExist):
+        return Response({'error':'Not Found'},status=400)
+
 
 @api_view(['GET'])
 def live_bus_location(request):
@@ -128,7 +132,7 @@ def live_bus_location(request):
     for route in bus_routes:
         bus_status, created = BusStatus.objects.get_or_create(route=route)
 
-        stops = list(route.stops.all().order_by('order'))
+        stops = [brs.stop for brs in RouteStop.objects.filter(bus=route).order_by('order')]
 
         if not stops:
             continue
@@ -161,3 +165,16 @@ def live_bus_location(request):
         bus_status.save()
 
     return Response({'buses': buses})
+
+@api_view(['GET'])
+def all_stops_coordinates(request):
+    stops = Stop.objects.all()
+    serializer = StopSerializer(stops, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def search_stops(request):
+    query = request.GET.get('q', '')
+    stops = Stop.objects.filter(name__icontains=query)
+    serializer = StopSerializer(stops, many=True)
+    return Response(serializer.data)
