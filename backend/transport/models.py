@@ -11,7 +11,7 @@ class Stop(models.Model):
 
 
 class BusRoute(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
     start_stop = models.ForeignKey(Stop, related_name="routes_starting", on_delete=models.CASCADE)
     end_stop = models.ForeignKey(Stop, related_name="routes_ending", on_delete=models.CASCADE)
 
@@ -46,6 +46,19 @@ class BusTrip(models.Model):
 
     def __str__(self):
         return f"{self.pattern} Trip @ {self.departure_time}"
+    
+class BusTripStopTime(models.Model):
+    trip = models.ForeignKey(BusTrip, related_name="stop_times", on_delete=models.CASCADE)
+    stop = models.ForeignKey(Stop, on_delete=models.CASCADE)
+    arrival_time = models.TimeField()
+    departure_time = models.TimeField()
+    stop_order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['stop_order']
+        
+    def __str__(self):
+        return f"{self.trip} - {self.stop.name} ({self.arrival_time} / {self.departure_time})"
 
 
 class Fare(models.Model):

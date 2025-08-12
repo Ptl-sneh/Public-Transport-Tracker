@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Stop, BusRoute, TripPattern, TripPatternStop, BusTrip, Fare , Feedback ,LiveBusLocation
+from .models import Stop, BusRoute, TripPattern, TripPatternStop, BusTrip, Fare , Feedback ,LiveBusLocation, BusTripStopTime
 from django.contrib.auth.models import User
 
 
@@ -25,12 +25,23 @@ class TripPatternSerializer(serializers.ModelSerializer):
         fields = ['id', 'route', 'stops']
 
 
+
+class BusTripStopTimeSerializer(serializers.ModelSerializer):
+    stop = StopSerializer()
+
+    class Meta:
+        model = BusTripStopTime
+        fields = ['stop_order', 'stop', 'arrival_time', 'departure_time']
+        
+        
 class BusTripSerializer(serializers.ModelSerializer):
+    stop_times = BusTripStopTimeSerializer(many=True, read_only=True)
+
     class Meta:
         model = BusTrip
         fields = '__all__'
-
-
+        
+        
 class FareSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fare

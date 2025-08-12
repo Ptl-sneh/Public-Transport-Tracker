@@ -4,8 +4,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.db.models import Q
-from .models import Stop, BusRoute, TripPattern, BusTrip, Fare, Feedback, LiveBusLocation
-from .serializers import StopSerializer, BusRouteSerializer, TripPatternSerializer, BusTripSerializer, FareSerializer, FeedbackSerializer, LiveBusLocationSerializer, UserSerializer
+from .models import Stop, BusRoute, TripPattern, BusTrip, Fare, Feedback, LiveBusLocation, BusTripStopTime
+from .serializers import StopSerializer, BusRouteSerializer, TripPatternSerializer, BusTripSerializer, FareSerializer, BusTripStopTimeSerializer,FeedbackSerializer, LiveBusLocationSerializer, UserSerializer
 
 
 # ========================
@@ -49,6 +49,13 @@ class RouteTripsView(generics.ListAPIView):
         route_id = self.kwargs['pk']
         return BusTrip.objects.filter(pattern__route_id=route_id)
 
+
+class TripStopTimesView(generics.ListAPIView):
+    serializer_class = BusTripStopTimeSerializer
+
+    def get_queryset(self):
+        trip_id = self.kwargs['trip_id']
+        return BusTripStopTime.objects.filter(trip_id=trip_id).order_by('stop_order')
 
 # ========================
 # Fares
