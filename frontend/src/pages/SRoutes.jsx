@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import RouteMapModal from '../components/RouteMapModal';
 
 const SRoutes = () => {
     const [searchRoute, setSearchRoute] = useState("");
     const [busRoutes, setBusRoutes] = useState([]);
+    const [selectedRouteId, setSelectedRouteId] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Fetch Bus Routes from backend API on mount
     useEffect(() => {
@@ -27,6 +30,16 @@ const SRoutes = () => {
             (route.end_stop?.name && route.end_stop.name.toLowerCase().includes(searchLower))
         );
     });
+
+    const openMapModal = (routeId) => {
+        setSelectedRouteId(routeId);
+        setIsModalOpen(true);
+    };
+
+    const closeMapModal = () => {
+        setIsModalOpen(false);
+        setSelectedRouteId(null);
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300" >
@@ -72,14 +85,16 @@ const SRoutes = () => {
                                     </div>
                                 </div>
                                 <div className="mt-4 md:mt-0">
-                                    <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300">
+                                    <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300" onClick={() => openMapModal(route.id)}>
                                         View on Map
                                     </button>
                                 </div>
                             </div>
                         </div>
                     ))}
-                </div>
+                </div>  
+
+                <RouteMapModal routeId={ selectedRouteId} isOpen={isModalOpen} onClose={closeMapModal} />
 
                 {findRoutes.length === 0 && (
                     <div className="text-center py-12">

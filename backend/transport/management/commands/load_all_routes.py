@@ -9,10 +9,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         base_dir = os.path.join("transport", "data")
-        file_path = os.path.join(base_dir, "stop.json")  # Base file for stops
+        file_path = os.path.join(base_dir, "s.json")  # Base file for stops
 
         with open(file_path, "r", encoding="utf-8") as f:
-            stops_data = sorted(json.load(f)["Data"], key=lambda x: x["sequenceNumber"])
+            data = json.load(f)
+            print('HIiiiiiiiii', data['Data'])
+            stops_data = sorted(data["Data"], key=lambda x: x["sequenceNumber"])
 
         # Create stops
         stop_objects = []
@@ -43,7 +45,7 @@ class Command(BaseCommand):
             )
 
         # Timing configuration
-        start_time = datetime.strptime("06:00", "%H:%M")
+        start_time = datetime.strptime("07:25", "%H:%M")
         trip_interval = timedelta(minutes=10)  # Every 10 minutes
         time_per_stop = timedelta(minutes=3)   # Example gap between stops
         dwell_time = timedelta(seconds=30)     # Stop waiting time
@@ -52,7 +54,7 @@ class Command(BaseCommand):
         trip_duration = total_stops_time
 
         # Generate trips
-        for i in range(106):  # 106 trips
+        for i in range(50):  # 106 trips
             departure_time = (start_time + i * trip_interval).time()
             arrival_time = (datetime.combine(datetime.today(), departure_time) + trip_duration).time()
 

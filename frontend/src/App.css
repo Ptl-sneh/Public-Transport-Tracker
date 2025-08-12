@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+.ReactModal__Body--open {
+  overflow: hidden;
+}
 
 @keyframes fade-in-up {
   from {
