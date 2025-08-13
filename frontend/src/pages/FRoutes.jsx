@@ -1,70 +1,81 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { useState } from 'react'
+import axios from 'axios'
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+})
 
 const FRoutes = () => {
-    const [routeForm, setRouteForm] = useState({
-        source: "",
-        destination: "",
-    })
+    const [routeForm, setRouteForm] = useState({ source: '', destination: '' })
     const [searchResults, setSearchResults] = useState([])
     const [isSearched, setIsSearched] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
 
     const handleChange = (e) => {
-        setRouteForm({
-            ...routeForm,
-            [e.target.name]: e.target.value,
-        })
+        setRouteForm({ ...routeForm, [e.target.name]: e.target.value })
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        // Simulate search results
-        const mockResults = [
-            {
-                id: 1,
-                type: "Bus",
-                route: "Route 101 → Route 205",
-                changeover: "CG Road",
-                time: "45 mins",
-                fare: "₹25",
-                steps: [
-                    "Take Bus 101 from " + routeForm.source,
-                    "Change at CG Road",
-                    "Take Bus 205 to " + routeForm.destination,
-                ],
-            },
-            {
-                id: 2,
-                type: "Metro",
-                route: "Blue Line",
-                changeover: "None",
-                time: "35 mins",
-                fare: "₹30",
-                steps: ["Take Metro Blue Line from nearest station", "Direct route to destination"],
-            },
-            {
-                id: 3,
-                type: "Bus + Metro",
-                route: "Route 103 → Blue Line",
-                changeover: "Thaltej Metro Station",
-                time: "50 mins",
-                fare: "₹35",
-                steps: [
-                    "Take Bus 103 from " + routeForm.source,
-                    "Change to Metro at Thaltej",
-                    "Take Blue Line to " + routeForm.destination,
-                ],
-            },
-        ]
-        setSearchResults(mockResults)
-        setIsSearched(true)
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/find_route/', {
+                params: { source: routeForm.source, destination: routeForm.destination },
+            })
+
+            // Map the backend data into frontend-friendly format
+            const results = response.data.map((route) => ({
+                id: route.id,
+                type: 'Bus',
+                route: route.name,
+                fare: `₹${route.fare}`,
+                has_transfer: route.has_transfer,
+                source_coordinates: route.source_coordinates,
+                destination_coordinates: route.destination_coordinates,
+                shape: route.shape || [],
+                steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
+                time: route.has_transfer ? '50 mins' : '35 mins',
+                changeover: route.has_transfer ? route.transfer_point : 'None',
+            }))
+
+            setSearchResults(results)
+            setIsSearched(true)
+        } catch (err) {
+            setError('Could not find routes')
+        } finally {
+            setIsLoading(false)
+        }
     }
-    
+
+    const generateRouteSteps = (route, source, destination) => {
+        const steps = []
+        if (!route.has_transfer) {
+            steps.push(`Take ${route.route} from ${source}`)
+            steps.push(`Continue to ${destination}`)
+        } else {
+            steps.push(`Take ${route.route} from ${source}`)
+            steps.push(`Change at ${route.changeover}`)
+            steps.push(`Take connecting route to ${destination}`)
+        }
+        return steps
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-            {/* Navigation */}
             <Navbar />
 
             <div className="max-w-6xl mx-auto px-4 py-8">
@@ -85,112 +96,125 @@ const FRoutes = () => {
                                     name="source"
                                     value={routeForm.source}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                     placeholder="Enter starting point"
                                     required
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Destination Stop
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Destination Stop</label>
                                 <input
                                     type="text"
                                     name="destination"
                                     value={routeForm.destination}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                     placeholder="Enter destination"
                                     required
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                 />
                             </div>
                         </div>
                         <div className="text-center">
                             <button
                                 type="submit"
+                                disabled={isLoading}
                                 className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                             >
-                                Find Route
+                                {isLoading ? 'Searching...' : 'Find Route'}
                             </button>
                         </div>
+                        {error && <div className="text-center text-red-500 dark:text-red-400">{error}</div>}
                     </form>
                 </div>
 
-                {/* Results Section */}
-                {isSearched && (
+                {/* Results */}
+                {isSearched && !isLoading && (
                     <div className="grid lg:grid-cols-2 gap-8">
-                        {/* Route Suggestions */}
+                        {/* Route Cards */}
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Suggestions</h2>
                             <div className="space-y-4">
-                                {searchResults.map((result) => (
-                                    <div
-                                        key={result.id}
-                                        className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-                                    >
-                                        <div className="flex items-center justify-between mb-4">
-                                            <span
-                                                className={`px-3 py-1 rounded-full text-sm font-semibold ${result.type === "Bus"
-                                                    ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300"
-                                                    : result.type === "Metro"
-                                                        ? "bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300"
-                                                        : "bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300"
-                                                    }`}
-                                            >
-                                                {result.type}
-                                            </span>
-                                            <div className="flex space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                                                <span>⏱️ {result.time}</span>
-                                                <span>💰 {result.fare}</span>
+                                {searchResults.length > 0 ? (
+                                    searchResults.map((result) => (
+                                        <div
+                                            key={result.id}
+                                            className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                                        >
+                                            <div className="flex items-center justify-between mb-4">
+                                                <span
+                                                    className={`px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300`}
+                                                >
+                                                    {result.type}
+                                                </span>
+                                                <div className="flex space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                                                    <span>⏱️ {result.time}</span>
+                                                    <span>💰 {result.fare}</span>
+                                                </div>
+                                            </div>
+
+                                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{result.route}</h3>
+
+                                            {result.changeover !== 'None' && (
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                                    <span className="font-medium">Changeover:</span> {result.changeover}
+                                                </p>
+                                            )}
+
+                                            <div className="space-y-1">
+                                                {result.steps.map((step, index) => (
+                                                    <div key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                                        <span className="w-6 h-6 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
+                                                            {index + 1}
+                                                        </span>
+                                                        {step}
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
-
-                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{result.route}</h3>
-
-                                        {result.changeover !== "None" && (
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                                                <span className="font-medium">Changeover:</span> {result.changeover}
-                                            </p>
-                                        )}
-
-                                        <div className="space-y-1">
-                                            {result.steps.map((step, index) => (
-                                                <div key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                                    <span className="w-6 h-6 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-full flex items-center justify-center text-xs font-semibold mr-3">
-                                                        {index + 1}
-                                                    </span>
-                                                    {step}
-                                                </div>
-                                            ))}
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-gray-600 dark:text-gray-400">No routes found for your search</p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
 
-                        {/* Map Placeholder */}
+                        {/* Route Map */}
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Map</h2>
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 h-96 flex items-center justify-center transition-colors duration-300">
-                                <div className="text-center">
-                                    <div className="text-6xl text-gray-300 dark:text-gray-600 mb-4">🗺️</div>
-                                    <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">Interactive Map</h3>
-                                    <p className="text-gray-500 dark:text-gray-400">Route visualization will be displayed here</p>
-                                </div>
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 h-96 transition-colors duration-300">
+                                {searchResults.length > 0 ? (
+                                    <MapContainer center={[23.0225, 72.5714]} zoom={13} className="w-full h-full">
+                                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap contributors' />
+
+                                        {searchResults.map((route) => (
+                                            <React.Fragment key={route.id}>
+                                                {route.source_coordinates && (
+                                                    <Marker position={route.source_coordinates}>
+                                                        <Popup>Source: {routeForm.source}</Popup>
+                                                    </Marker>
+                                                )}
+                                                {route.destination_coordinates && (
+                                                    <Marker position={route.destination_coordinates}>
+                                                        <Popup>Destination: {routeForm.destination}</Popup>
+                                                    </Marker>
+                                                )}
+                                                {route.shape.length > 0 && <Polyline positions={route.shape} color="red" weight={4} opacity={0.6} />}
+                                            </React.Fragment>
+                                        ))}
+                                    </MapContainer>
+                                ) : (
+                                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                                        Route visualization will be displayed here
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
-                )}
-
-                {!isSearched && (
-                    <div className="text-center py-12">
-                        <div className="text-gray-300 dark:text-gray-600 text-6xl mb-4">🚌</div>
-                        <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">Ready to find your route?</h3>
-                        <p className="text-gray-500 dark:text-gray-400">Enter your source and destination above to get started</p>
                     </div>
                 )}
             </div>
-            <Footer />  
+            <Footer />
         </div>
     )
 }
