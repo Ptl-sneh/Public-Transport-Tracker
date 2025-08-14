@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import axios from 'axios'
@@ -37,18 +37,28 @@ const FRoutes = () => {
         setRouteForm({ ...routeForm, [e.target.name]: e.target.value })
     }
 
-    
+    const generateRouteSteps = (route, source, destination) => {
+        if (!route.has_transfer) {
+            return [`Take ${route.route} from ${source}`, `Continue to ${destination}`]
+        } else {
+            return [
+                `Take ${route.route} from ${source}`,
+                `Change at ${route.changeover}`,
+                `Take connecting route to ${destination}`
+            ]
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsLoading(true)
         setError(null)
-        
         try {
             const response = await axios.get('http://127.0.0.1:8000/api/find_route/', {
                 params: { source: routeForm.source, destination: routeForm.destination },
             })
 
-            const results = response.data.map((route) => ({
+            const results = response.data.map(route => ({
                 id: route.id,
                 type: 'Bus',
                 route: route.name,
@@ -61,30 +71,22 @@ const FRoutes = () => {
                 time: route.has_transfer ? '50 mins' : '35 mins',
                 changeover: route.has_transfer ? route.transfer_point : 'None',
             }))
-            
+
             setSearchResults(results)
             setIsSearched(true)
             if (results.length > 0) setSelectedRouteId(results[0].id)
-            
-        } catch (err) {
+        } catch {
             setError('Could not find routes')
         } finally {
             setIsLoading(false)
         }
     }
 
-    const generateRouteSteps = (route, source, destination) => {
-        const steps = []
-        if (!route.has_transfer) {
-            steps.push(`Take ${route.route} from ${source}`)
-            steps.push(`Continue to ${destination}`)
-        } else {
-            steps.push(`Take ${route.route} from ${source}`)
-            steps.push(`Change at ${route.changeover}`)
-            steps.push(`Take connecting route to ${destination}`)
-        }
-        return steps
-    }
+    // Memoized selected route to avoid repeated search
+    const selectedRoute = useMemo(
+        () => searchResults.find(r => r.id === selectedRouteId),
+        [searchResults, selectedRouteId]
+    )
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -100,30 +102,22 @@ const FRoutes = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8 transition-colors duration-300">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source Stop</label>
-                                <input
-                                    type="text"
-                                    name="source"
-                                    value={routeForm.source}
-                                    onChange={handleChange}
-                                    placeholder="Enter starting point"
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Destination Stop</label>
-                                <input
-                                    type="text"
-                                    name="destination"
-                                    value={routeForm.destination}
-                                    onChange={handleChange}
-                                    placeholder="Enter destination"
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                                />
-                            </div>
+                            {['source', 'destination'].map(name => (
+                                <div key={name}>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {name.charAt(0).toUpperCase() + name.slice(1)} Stop
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name={name}
+                                        value={routeForm[name]}
+                                        onChange={handleChange}
+                                        placeholder={`Enter ${name} stop`}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                    />
+                                </div>
+                            ))}
                         </div>
                         <div className="text-center">
                             <button
@@ -146,7 +140,7 @@ const FRoutes = () => {
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Suggestions</h2>
                             <div className="space-y-4">
                                 {searchResults.length > 0 ? (
-                                    searchResults.map((result) => (
+                                    searchResults.map(result => (
                                         <div
                                             key={result.id}
                                             className={`bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer ${selectedRouteId === result.id ? 'border-2 border-red-500' : ''
@@ -154,9 +148,7 @@ const FRoutes = () => {
                                             onClick={() => setSelectedRouteId(result.id)}
                                         >
                                             <div className="flex items-center justify-between mb-4">
-                                                <span
-                                                    className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300"
-                                                >
+                                                <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
                                                     {result.type}
                                                 </span>
                                                 <div className="flex space-x-4 text-sm text-gray-600 dark:text-gray-400">
@@ -203,52 +195,39 @@ const FRoutes = () => {
                                             attribution='&copy; OpenStreetMap contributors'
                                         />
 
-                                        {searchResults
-                                            .filter(route => route.id !== selectedRouteId)
-                                            .map(route => (
-                                                <Polyline
-                                                    key={route.id}
-                                                    positions={route.shape}
-                                                    color="gray"
-                                                    weight={4}
-                                                    opacity={0.9}
-                                                />
-                                            ))}
+                                        {/* Non-selected routes */}
+                                        {searchResults.filter(r => r.id !== selectedRouteId).map(r => (
+                                            <Polyline
+                                                key={r.id}
+                                                positions={r.shape}
+                                                color="gray"
+                                                weight={4}
+                                                opacity={0.7}
+                                            />
+                                        ))}
 
                                         {/* Selected route */}
-                                        {selectedRouteId && (() => {
-                                            const selectedRoute = searchResults.find(r => r.id === selectedRouteId)
-                                            if (!selectedRoute) return null
-                                            return (
-                                                <>
-                                                    <Polyline
-                                                        key={selectedRoute.id}
-                                                        positions={selectedRoute.shape}
-                                                        color="red"
-                                                        weight={5}
-                                                        opacity={0.9}
-                                                    />
-                                                    {selectedRoute.source_coordinates && (
-                                                        <Marker position={selectedRoute.source_coordinates}>
-                                                            <Popup>Source: {routeForm.source}</Popup>
-                                                        </Marker>
-                                                    )}
-                                                    {selectedRoute.destination_coordinates && (
-                                                        <Marker position={selectedRoute.destination_coordinates}>
-                                                            <Popup>Destination: {routeForm.destination}</Popup>
-                                                        </Marker>
-                                                    )}
-                                                </>
-                                            )
-                                        })()}
-
-                                        {/* Pan/zoom map to selected route */}
-                                        {selectedRouteId && (
-                                            <MapPanToSelected
-                                                coordinates={
-                                                    searchResults.find(r => r.id === selectedRouteId)?.shape
-                                                }
-                                            />
+                                        {selectedRoute && (
+                                            <>
+                                                <Polyline
+                                                    key={selectedRoute.id}
+                                                    positions={selectedRoute.shape}
+                                                    color="red"
+                                                    weight={5}
+                                                    opacity={0.9}
+                                                />
+                                                {selectedRoute.source_coordinates && (
+                                                    <Marker position={selectedRoute.source_coordinates}>
+                                                        <Popup>Source: {routeForm.source}</Popup>
+                                                    </Marker>
+                                                )}
+                                                {selectedRoute.destination_coordinates && (
+                                                    <Marker position={selectedRoute.destination_coordinates}>
+                                                        <Popup>Destination: {routeForm.destination}</Popup>
+                                                    </Marker>
+                                                )}
+                                                <MapPanToSelected coordinates={selectedRoute.shape} />
+                                            </>
                                         )}
                                     </MapContainer>
                                 ) : (
