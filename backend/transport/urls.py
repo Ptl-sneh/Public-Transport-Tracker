@@ -42,7 +42,7 @@ urlpatterns = [
     # ----------------------
     # Live Bus Location
     # ----------------------
-    path('bus-location/', views.live_bus_location, name='live-bus-location'),
+    path('bus-location/', views.live_bus_location, name='bus-location'),
 
     # ----------------------
     # Favourites

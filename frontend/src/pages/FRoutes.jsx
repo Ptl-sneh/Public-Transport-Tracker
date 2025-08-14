@@ -82,6 +82,8 @@ const FRoutes = () => {
         }
     }
 
+    console.log(searchResults)
+
     // Memoized selected route to avoid repeated search
     const selectedRoute = useMemo(
         () => searchResults.find(r => r.id === selectedRouteId),
@@ -134,7 +136,7 @@ const FRoutes = () => {
 
                 {/* Results */}
                 {isSearched && !isLoading && (
-                    <div className="grid lg:grid-cols-2 gap-8">
+                    <div className="grid lg:grid-cols-2 gap-8" >
                         {/* Route Cards */}
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Suggestions</h2>

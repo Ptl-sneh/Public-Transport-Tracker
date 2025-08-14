@@ -52,49 +52,49 @@ class Command(BaseCommand):
         )
         
 
-        # # Create trip pattern
-        # pattern_obj, _ = TripPattern.objects.get_or_create(route=route_obj)
-        # TripPatternStop.objects.filter(pattern=pattern_obj).delete()
-        # for order, stop in enumerate(stop_objects, start=1):
-        #     TripPatternStop.objects.create(
-        #         pattern=pattern_obj,
-        #         stop=stop,
-        #         stop_order=order
-        #     )
+        # Create trip pattern
+        pattern_obj, _ = TripPattern.objects.get_or_create(route=route_obj)
+        TripPatternStop.objects.filter(pattern=pattern_obj).delete()
+        for order, stop in enumerate(stop_objects, start=1):
+            TripPatternStop.objects.create(
+                pattern=pattern_obj,
+                stop=stop,
+                stop_order=order
+            )
 
-        # # Timing configuration
-        # start_time = datetime.strptime("07:25", "%H:%M")
-        # trip_interval = timedelta(minutes=10)  # Every 10 minutes
-        # time_per_stop = timedelta(minutes=3)   # Example gap between stops
-        # dwell_time = timedelta(seconds=30)     # Stop waiting time
+        # Timing configuration
+        start_time = datetime.strptime("07:25", "%H:%M")
+        trip_interval = timedelta(minutes=10)  # Every 10 minutes
+        time_per_stop = timedelta(minutes=3)   # Example gap between stops
+        dwell_time = timedelta(seconds=30)     # Stop waiting time
 
-        # total_stops_time = time_per_stop * (len(stop_objects) - 1) + dwell_time
-        # trip_duration = total_stops_time
+        total_stops_time = time_per_stop * (len(stop_objects) - 1) + dwell_time
+        trip_duration = total_stops_time
 
-        # # Generate trips
-        # for i in range(50):  # 106 trips
-        #     departure_time = (start_time + i * trip_interval).time()
-        #     arrival_time = (datetime.combine(datetime.today(), departure_time) + trip_duration).time()
+        # Generate trips
+        for i in range(50):  # 106 trips
+            departure_time = (start_time + i * trip_interval).time()
+            arrival_time = (datetime.combine(datetime.today(), departure_time) + trip_duration).time()
 
-        #     trip, _ = BusTrip.objects.get_or_create(
-        #         pattern=pattern_obj,
-        #         departure_time=departure_time,
-        #         arrival_time=arrival_time
-        #     )
+            trip, _ = BusTrip.objects.get_or_create(
+                pattern=pattern_obj,
+                departure_time=departure_time,
+                arrival_time=arrival_time
+            )
 
-        #     # Clear any existing stop times for this trip (avoid duplicates if re-run)
-        #     BusTripStopTime.objects.filter(trip=trip).delete()
+            # Clear any existing stop times for this trip (avoid duplicates if re-run)
+            BusTripStopTime.objects.filter(trip=trip).delete()
 
-        #     # Create stop-level times
-        #     current_time = datetime.combine(datetime.today(), departure_time)
-        #     for order, stop in enumerate(stop_objects, start=1):
-        #         BusTripStopTime.objects.create(
-        #             trip=trip,
-        #             stop=stop,
-        #             stop_order=order,
-        #             arrival_time=current_time.time(),
-        #             departure_time=(current_time + dwell_time).time()
-        #         )
-        #         current_time += time_per_stop
+            # Create stop-level times
+            current_time = datetime.combine(datetime.today(), departure_time)
+            for order, stop in enumerate(stop_objects, start=1):
+                BusTripStopTime.objects.create(
+                    trip=trip,
+                    stop=stop,
+                    stop_order=order,
+                    arrival_time=current_time.time(),
+                    departure_time=(current_time + dwell_time).time()
+                )
+                current_time += time_per_stop
 
-        # self.stdout.write(self.style.SUCCESS(f"✅ Created route {route_code} with 106 trips and stop-wise timings"))
+        self.stdout.write(self.style.SUCCESS(f"✅ Created route {route_code} with 106 trips and stop-wise timings"))

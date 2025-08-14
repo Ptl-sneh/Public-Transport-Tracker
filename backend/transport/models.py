@@ -72,6 +72,16 @@ class BusTripStopTime(models.Model):
 
     def __str__(self):
         return f"{self.trip} - {self.stop.name} ({self.arrival_time}/{self.departure_time})"
+    
+# ----------------------
+# Route Shape
+# ----------------------
+class RouteShape(models.Model):
+    route = models.OneToOneField(BusRoute, related_name='shape', on_delete=models.CASCADE)
+    coordinates = models.JSONField(help_text="List of [lat, lng] pairs representing route shape")
+
+    def __str__(self):
+        return f"Shape for {self.route.name}"
 
 
 # ----------------------
@@ -103,21 +113,11 @@ class Feedback(models.Model):
 # Live Bus Location
 # ----------------------
 class LiveBusLocation(models.Model):
-    trip = models.ForeignKey(BusTrip, on_delete=models.CASCADE)
+    trip = models.ForeignKey(BusTrip, on_delete=models.CASCADE,null=True, blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     timestamp = models.DateTimeField(auto_now=True)
 
-
-# ----------------------
-# Route Shape
-# ----------------------
-class RouteShape(models.Model):
-    route = models.OneToOneField(BusRoute, related_name='shape', on_delete=models.CASCADE)
-    coordinates = models.JSONField(help_text="List of [lat, lng] pairs representing route shape")
-
-    def __str__(self):
-        return f"Shape for {self.route.name}"
 
 
 # ----------------------

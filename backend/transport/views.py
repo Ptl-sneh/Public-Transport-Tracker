@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q,Prefetch
 from django.utils import timezone
 from .models import (
     Stop, BusRoute, TripPattern, BusTrip, BusTripStopTime, Fare,
@@ -191,57 +191,142 @@ def get_shape_segment(shape_coords, source_coord, dest_coord):
 
 @api_view(['GET'])
 def find_routes(request):
-    source_name = request.GET.get('source')
-    destination_name = request.GET.get('destination')
+    source_name = request.GET.get('source', '').strip()
+    destination_name = request.GET.get('destination', '').strip()
+
+    if not source_name or not destination_name:
+        return Response({"error": "Source and destination are required."}, status=400)
+
+    valid_routes = []
 
     try:
+        # STEP 1 — DIRECT ROUTES
         routes = BusRoute.objects.filter(
             trip_patterns__pattern_stops__stop__name__icontains=source_name
         ).filter(
             trip_patterns__pattern_stops__stop__name__icontains=destination_name
         ).distinct()
 
-        valid_routes = []
-
         for route in routes:
             for pattern in route.trip_patterns.all():
                 stops = list(pattern.pattern_stops.order_by('stop_order'))
+
                 try:
                     source_index = next(i for i, ps in enumerate(stops) if ps.stop.name.lower() == source_name.lower())
                     dest_index = next(i for i, ps in enumerate(stops) if ps.stop.name.lower() == destination_name.lower())
+                except StopIteration:
+                    continue
 
-                    if source_index < dest_index:
-                        # Get polyline coordinates only between source and destination
-                        shape_coords = []
-                        if hasattr(route, 'shape') and route.shape.coordinates:
+                if source_index < dest_index:
+                    shape_coords = []
+                    if getattr(route, 'shape', None) and getattr(route.shape, 'coordinates', None):
+                        try:
                             shape_coords = get_shape_segment(
                                 route.shape.coordinates,
                                 [stops[source_index].stop.latitude, stops[source_index].stop.longitude],
                                 [stops[dest_index].stop.latitude, stops[dest_index].stop.longitude]
                             )
+                        except Exception:
+                            pass
 
-                        valid_routes.append({
-                            "id": route.id,
-                            "name": route.name,
-                            "fare": route.fares.first().amount if route.fares.exists() else 20.00,
-                            "has_transfer": False,
-                            "source_coordinates": [stops[source_index].stop.latitude, stops[source_index].stop.longitude],
-                            "destination_coordinates": [stops[dest_index].stop.latitude, stops[dest_index].stop.longitude],
-                            "shape": shape_coords,
-                            "transfer_point": None
-                        })
+                    valid_routes.append({
+                        "id": route.id,
+                        "name": route.name,
+                        "fare": route.fares.first().amount if route.fares.exists() else 20.00,
+                        "has_transfer": False,
+                        "source_coordinates": [stops[source_index].stop.latitude, stops[source_index].stop.longitude],
+                        "destination_coordinates": [stops[dest_index].stop.latitude, stops[dest_index].stop.longitude],
+                        "shape": shape_coords,
+                        "transfer_point": None
+                    })
+                    break
+
+        # STEP 2 — ONE TRANSFER
+        if not valid_routes:
+            source_routes = BusRoute.objects.filter(
+                trip_patterns__pattern_stops__stop__name__icontains=source_name
+            ).distinct()
+
+            dest_routes = BusRoute.objects.filter(
+                trip_patterns__pattern_stops__stop__name__icontains=destination_name
+            ).distinct()
+
+            found_transfer = False
+
+            for sr in source_routes:
+                for sp in sr.trip_patterns.all():
+                    source_stops = list(sp.pattern_stops.order_by('stop_order'))
+
+                    try:
+                        source_idx = next(i for i, ps in enumerate(source_stops) if ps.stop.name.lower() == source_name.lower())
+                    except StopIteration:
+                        continue
+
+                    for ps in source_stops[source_idx + 1:]:
+                        transfer_stop_name = ps.stop.name.lower()
+
+                        for dr in dest_routes:
+                            for dp in dr.trip_patterns.all():
+                                dest_stops = list(dp.pattern_stops.order_by('stop_order'))
+
+                                try:
+                                    transfer_idx = next(i for i, dps in enumerate(dest_stops) if dps.stop.name.lower() == transfer_stop_name)
+                                    final_idx = next(i for i, dps in enumerate(dest_stops) if dps.stop.name.lower() == destination_name.lower())
+                                except StopIteration:
+                                    continue
+
+                                if transfer_idx < final_idx:
+                                    # Get shapes for both legs
+                                    leg1_shape, leg2_shape = [], []
+
+                                    if getattr(sr, 'shape', None) and getattr(sr.shape, 'coordinates', None):
+                                        try:
+                                            leg1_shape = get_shape_segment(
+                                                sr.shape.coordinates,
+                                                [source_stops[source_idx].stop.latitude, source_stops[source_idx].stop.longitude],
+                                                [ps.stop.latitude, ps.stop.longitude]
+                                            )
+                                        except Exception:
+                                            pass
+
+                                    if getattr(dr, 'shape', None) and getattr(dr.shape, 'coordinates', None):
+                                        try:
+                                            leg2_shape = get_shape_segment(
+                                                dr.shape.coordinates,
+                                                [dest_stops[transfer_idx].stop.latitude, dest_stops[transfer_idx].stop.longitude],
+                                                [dest_stops[final_idx].stop.latitude, dest_stops[final_idx].stop.longitude]
+                                            )
+                                        except Exception:
+                                            pass
+
+                                    valid_routes.append({
+                                        "id": f"{sr.id}-{dr.id}",
+                                        "name": f"{sr.name} → {dr.name}",
+                                        "fare": 40.00,
+                                        "has_transfer": True,
+                                        "source_coordinates": [source_stops[source_idx].stop.latitude, source_stops[source_idx].stop.longitude],
+                                        "destination_coordinates": [dest_stops[final_idx].stop.latitude, dest_stops[final_idx].stop.longitude],
+                                        "transfer_coordinates": [ps.stop.latitude, ps.stop.longitude],
+                                        "shape": [leg1_shape, leg2_shape],  # send both legs
+                                        "transfer_point": ps.stop.name
+                                    })
+                                    found_transfer = True
+                                    break
+                            if found_transfer:
+                                break
+                        if found_transfer:
+                            break
+                    if found_transfer:
                         break
-
-                except Stop.DoesNotExist:
-                    continue
 
         return Response(valid_routes)
 
     except Exception as e:
-        return Response(
-            {"error": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        import traceback
+        print("ERROR in find_routes:", str(e))
+        traceback.print_exc()
+        return Response({"error": str(e)}, status=500)
+
 
 
 # ----------------------
