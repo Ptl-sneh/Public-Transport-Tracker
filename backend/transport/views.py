@@ -175,13 +175,26 @@ class ActiveServiceAlertsView(generics.ListAPIView):
 # ----------------------
 # Route Finder (Source → Destination)
 # ----------------------
+
+from geopy.distance import geodesic
+
+def get_shape_segment(shape_coords, source_coord, dest_coord):
+    # Find index of the shape point closest to source
+    start_idx = min(range(len(shape_coords)), key=lambda i: geodesic(shape_coords[i], source_coord).meters)
+    # Find index of the shape point closest to destination
+    end_idx = min(range(len(shape_coords)), key=lambda i: geodesic(shape_coords[i], dest_coord).meters)
+
+    if start_idx > end_idx:
+        start_idx, end_idx = end_idx, start_idx
+
+    return shape_coords[start_idx:end_idx + 1]
+
 @api_view(['GET'])
 def find_routes(request):
     source_name = request.GET.get('source')
     destination_name = request.GET.get('destination')
 
     try:
-        # Filter routes that contain both source and destination
         routes = BusRoute.objects.filter(
             trip_patterns__pattern_stops__stop__name__icontains=source_name
         ).filter(
@@ -191,25 +204,33 @@ def find_routes(request):
         valid_routes = []
 
         for route in routes:
-            # Check order: source should come before destination in any pattern
             for pattern in route.trip_patterns.all():
+                stops = list(pattern.pattern_stops.order_by('stop_order'))
                 try:
-                    stops = list(pattern.pattern_stops.order_by('stop_order'))
                     source_index = next(i for i, ps in enumerate(stops) if ps.stop.name.lower() == source_name.lower())
                     dest_index = next(i for i, ps in enumerate(stops) if ps.stop.name.lower() == destination_name.lower())
 
                     if source_index < dest_index:
+                        # Get polyline coordinates only between source and destination
+                        shape_coords = []
+                        if hasattr(route, 'shape') and route.shape.coordinates:
+                            shape_coords = get_shape_segment(
+                                route.shape.coordinates,
+                                [stops[source_index].stop.latitude, stops[source_index].stop.longitude],
+                                [stops[dest_index].stop.latitude, stops[dest_index].stop.longitude]
+                            )
+
                         valid_routes.append({
                             "id": route.id,
                             "name": route.name,
                             "fare": route.fares.first().amount if route.fares.exists() else 20.00,
-                            "has_transfer": False,  # You can extend transfer logic later
+                            "has_transfer": False,
                             "source_coordinates": [stops[source_index].stop.latitude, stops[source_index].stop.longitude],
                             "destination_coordinates": [stops[dest_index].stop.latitude, stops[dest_index].stop.longitude],
-                            "shape": route.shape.coordinates if hasattr(route, 'shape') else [],
+                            "shape": shape_coords,
                             "transfer_point": None
                         })
-                        break  # Only add one pattern per route that satisfies source->destination
+                        break
 
                 except Stop.DoesNotExist:
                     continue
@@ -221,6 +242,7 @@ def find_routes(request):
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
 
 # ----------------------
 # ETA for a Stop
