@@ -3,38 +3,29 @@ import { Link } from 'react-router-dom';
 import axios from 'axios'
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-});
 const Home = () => {
-    const [routes, setRoutes] = useState([]);
     const [nearestStops, setNearestStops] = useState([]);
-    useEffect(() => {
-        fetch('http://127.0.0.1:8000/api/bus-routes/')
-            .then(res => res.json())
-            .then(data => setRoutes(data))
-            .catch(err => console.error(err));
-    }, []);
-
-    // Fetch nearest stops
+    const [userLocation, setUserLocation] = useState(null);
+ 
     useEffect(() => {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const { latitude, longitude } = pos.coords;
-                axios.get(`http://127.0.0.1:8000/api/nearby/?lat=${latitude}&lng=${longitude}`)
-                    .then(res => setNearestStops(res.data))
-                    .catch(err => console.error(err));
-            });
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setUserLocation([latitude, longitude]);
+
+                    // Fetch nearest stops
+                    axios.get(`http://127.0.0.1:8000/api/stops/nearby/?lat=${latitude}&lng=${longitude}`)
+                        .then(res => setNearestStops(res.data))
+                        .catch(err => console.error(err));
+                },
+                (err) => console.error(err)
+            );
         }
     }, []);
 
@@ -96,63 +87,40 @@ const Home = () => {
                     Map View of Ahmedabad
                 </h2>
                 <div className="rounded-2xl overflow-hidden shadow-lg">
-                    <MapContainer center={[23.0225, 72.5714]} zoom={13} scrollWheelZoom className="w-full h-[500px] z-0">
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; OpenStreetMap contributors'
-                        />
+                    {userLocation ? (
+                        <MapContainer center={userLocation} zoom={15} scrollWheelZoom className="w-full h-[500px] z-0">
+                            <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution='&copy; OpenStreetMap contributors'
+                            />
 
-                        {routes.map((route, idx) => (
-                            <React.Fragment key={idx}>
-                                {/* Draw route shape */}
-                                {route.shape && route.shape.coordinates && (
-                                    <Polyline
-                                        positions={route.shape.coordinates}
-                                        color="dodgerblue"
-                                    />
-                                )}
+                            {nearestStops.map((stopObj, index) => (
+                                <Marker
+                                    key={index}
+                                    position={[stopObj.stop.latitude, stopObj.stop.longitude]}
+                                    icon={L.icon({
+                                        iconUrl: markerIcon,
+                                        iconSize: [28, 32]
+                                    })}
+                                >
+                                    <Popup>
+                                        <b>{stopObj.stop.name}</b><br />
+                                    </Popup>
+                                </Marker>
+                            ))}
 
-                                {/* Draw all stops */}
-                                {route.trip_patterns.map(pattern => (
-                                    pattern.stops.map((stopData, i) => {
-                                        const stop = stopData.stop;
-                                        return (
-                                            <Marker
-                                                key={`${pattern.id}-${i}`}
-                                                position={[stop.latitude, stop.longitude]}
-                                                icon={L.icon({
-                                                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-                                                    iconSize: [30, 30]
-                                                })}
-                                            >
-                                                <Popup>
-                                                    <b>{stop.name}</b><br />
-                                                </Popup>
-                                            </Marker>
-                                        )
-                                    })
-                                ))}
-                            </React.Fragment>
-                        ))}
-                    </MapContainer>
-                </div>
-            </div>
-
-            {/* Nearest Stops Section */}
-            <div className="max-w-6xl mx-auto py-12">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Nearest Stops to You</h2>
-                <ul className="space-y-4">
-                    {nearestStops.length > 0 ? (
-                        nearestStops.map((stop, index) => (
-                            <li key={index} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md flex justify-between">
-                                <span className="font-medium">{stop.name}</span>
-                                <span className="text-gray-500">{stop.distance.toFixed(1)} km away</span>
-                            </li>
-                        ))
+                            {/* User marker */}
+                            <Marker position={userLocation} icon={L.icon({
+                                iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png',
+                                iconSize: [30, 30]
+                            })}>
+                                <Popup>You are here</Popup>
+                            </Marker>
+                        </MapContainer>
                     ) : (
-                        <p className="text-gray-500 dark:text-gray-400">Fetching nearest stops...</p>
+                        <p className="text-center p-8">Fetching your location...</p>
                     )}
-                </ul>
+                </div>
             </div>
 
             <div className="max-w-6xl mx-auto">

@@ -2,8 +2,8 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db.models import Q,Prefetch
 from django.utils import timezone
+from geopy.distance import geodesic
 from .models import (
     Stop, BusRoute, TripPattern, BusTrip, BusTripStopTime, Fare,
     Feedback, LiveBusLocation, Favourite, ServiceAlert,TripPatternStop
@@ -397,47 +397,30 @@ def find_direct_routes(request):
     serializer = BusRouteSerializer(direct_routes, many=True)
     return Response(serializer.data)
 
-import math
 
 @api_view(['GET'])
 def nearby_stops(request):
-    """
-    Return stops within a given radius from provided latitude & longitude
-    """
     try:
         lat = float(request.GET.get('lat'))
         lng = float(request.GET.get('lng'))
-        radius = float(request.GET.get('radius', 500))  # meters
+        radius = float(request.GET.get('radius', 1000))  # default radius in meters
 
+        user_location = (lat, lng)
         stops = []
+
         for stop in Stop.objects.all():
-            distance = haversine(lng, lat, stop.longitude, stop.latitude)
+            stop_location = (stop.latitude, stop.longitude)
+            distance = geodesic(user_location, stop_location).meters  # distance in meters
             if distance <= radius:
                 stops.append({
                     'stop': StopSerializer(stop).data,
-                    'distance_m': round(distance, 2)
+                    'distance_m': round(distance)
                 })
 
         return Response(stops)
 
     except Exception as e:
         return Response({'error': str(e)}, status=400)
-
-
-def haversine(lon1, lat1, lon2, lat2):
-    """
-    Calculate distance in meters between two coordinates using Haversine formula
-    """
-    R = 6371000  # radius of Earth in meters
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    d_phi = math.radians(lat2 - lat1)
-    d_lambda = math.radians(lon2 - lon1)
-
-    a = math.sin(d_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-    return R * c
 
 
 @api_view(['GET'])
