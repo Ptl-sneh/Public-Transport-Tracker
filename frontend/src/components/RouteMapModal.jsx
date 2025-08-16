@@ -1,34 +1,68 @@
 import 'leaflet/dist/leaflet.css';
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import axios from 'axios';
 
-Modal.setAppElement('#root'); // Important for accessibility
+Modal.setAppElement('#root');
+
+// 🔹 Helper component to adjust map view
+const FitRouteBounds = ({ positions }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (positions.length > 0) {
+            map.fitBounds(positions, { padding: [50, 50] }); // smooth zoom/pan
+        }
+    }, [positions, map]);
+
+    return null;
+};
+
+// 🔹 New helper to smoothly fly to a stop
+const FlyToStop = ({ position }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (position) {
+            map.flyTo(position, 14, { duration: 1 });
+        }
+    }, [position, map]);
+    return null;
+};
 
 const RouteMapModal = ({ routeId, isOpen, onClose }) => {
     const [stops, setStops] = useState([]);
+    const [shapeCoords, setShapeCoords] = useState([]);
+    const [selectedStop, setSelectedStop] = useState(null);
 
     useEffect(() => {
         if (isOpen && routeId) {
             axios.get(`http://localhost:8000/api/bus-routes/${routeId}/`)
                 .then(res => {
-                    const patternStops = res.data.trip_patterns?.[0]?.stops || [];
+                    const data = res.data;
+
+                    const patternStops = data.trip_patterns?.[0]?.stops || [];
                     setStops(patternStops.map(ps => ({
                         name: ps.stop.name,
                         lat: ps.stop.latitude,
                         lng: ps.stop.longitude,
                     })));
+
+                    if (data.shape?.coordinates?.length) {
+                        setShapeCoords(data.shape.coordinates.map(([lat, lng]) => [lat, lng]));
+                    } else {
+                        setShapeCoords(patternStops.map(ps => [ps.stop.latitude, ps.stop.longitude]));
+                    }
                 })
                 .catch(err => {
-                    console.error("Failed to load route stops:", err);
+                    console.error("Failed to load route:", err);
                     setStops([]);
+                    setShapeCoords([]);
                 });
         }
     }, [isOpen, routeId]);
 
-    const polylinePositions = stops.map(stop => [stop.lat, stop.lng]);
-    const center = polylinePositions.length > 0 ? polylinePositions[0] : [23.0225, 72.5714]; // Ahmedabad coords
+    const defaultCenter = [23.0225, 72.5714]; // Ahmedabad fallback
 
     return (
         <Modal
@@ -37,8 +71,8 @@ const RouteMapModal = ({ routeId, isOpen, onClose }) => {
             contentLabel="Route Map"
             style={{
                 overlay: {
-                    backgroundColor: 'hsla(0, 22%, 8%, 0.00)', // example: red with 50% opacity
-                    backdropFilter: 'blur(4px)', // optional blur effect
+                    backgroundColor: 'hsla(0, 22%, 8%, 0.00)',
+                    backdropFilter: 'blur(4px)',
                     zIndex: 1000,
                 },
                 content: {
@@ -56,7 +90,6 @@ const RouteMapModal = ({ routeId, isOpen, onClose }) => {
                 }
             }}
         >
-            {/* Close Button with Tailwind */}
             <button
                 onClick={onClose}
                 className="absolute top-2 right-2 z-[1000] bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1.5 font-semibold transition-colors duration-200"
@@ -64,19 +97,29 @@ const RouteMapModal = ({ routeId, isOpen, onClose }) => {
                 Close
             </button>
 
-            {/* Map Container */}
-            <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
+            <MapContainer center={defaultCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                {polylinePositions.length > 0 && (
-                    <>
-                        <Polyline positions={polylinePositions} color="red" />
-                        {stops.map((stop, idx) => (
-                            <Marker key={idx} position={[stop.lat, stop.lng]}>
-                                <Popup>{stop.name}</Popup>
-                            </Marker>
-                        ))}
-                    </>
+
+                {/* Auto-fit map to shape */}
+                <FitRouteBounds positions={shapeCoords} />
+
+                {shapeCoords.length > 0 && (
+                    <Polyline positions={shapeCoords} color="red" weight={4} />
                 )}
+
+                {stops.map((stop, idx) => (
+                    <Marker
+                        key={idx}
+                        position={[stop.lat, stop.lng]}
+                        eventHandlers={{
+                            click: () => setSelectedStop([stop.lat, stop.lng]), // fly to stop on click
+                        }}
+                    >
+                        <Popup>{stop.name}</Popup>
+                    </Marker>
+                ))}
+
+                {selectedStop && <FlyToStop position={selectedStop} />}
             </MapContainer>
         </Modal>
     );

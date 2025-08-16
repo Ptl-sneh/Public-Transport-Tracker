@@ -15,7 +15,7 @@ from .serializers import (
     ServiceAlertSerializer
 )
 from django.contrib.auth.models import User
-import math
+
 
 # ----------------------
 # Stops
@@ -33,44 +33,10 @@ class StopDetailView(generics.RetrieveUpdateDestroyAPIView):
 @api_view(['GET'])
 def search_stops(request):
     query = request.GET.get('q', '')
-    stops = Stop.objects.filter(name__icontains=query)
+    print('query',query)
+    stops = Stop.objects.filter(name__icontains=query).distinct()
+    print(stops)
     return Response(StopSerializer(stops, many=True).data)
-
-
-# ----------------------
-# Nearby Stops
-# ----------------------
-@api_view(['GET'])
-def nearby_stops(request):
-    try:
-        lat = float(request.GET.get('lat'))
-        lng = float(request.GET.get('lng'))
-        radius = float(request.GET.get('radius', 500))  # meters
-
-        stops = []
-        for stop in Stop.objects.all():
-            distance = haversine(lng, lat, stop.longitude, stop.latitude)
-            if distance <= radius:
-                stops.append(stop)
-
-        serializer = StopSerializer(stops, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-def haversine(lon1, lat1, lon2, lat2):
-    # Haversine formula to calculate distance in meters
-    R = 6371000
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    d_phi = math.radians(lat2 - lat1)
-    d_lambda = math.radians(lon2 - lon1)
-
-    a = math.sin(d_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-    return R * c
 
 
 # ----------------------
@@ -369,36 +335,6 @@ def search_stops_with_routes(request):
 
 
 @api_view(['GET'])
-def find_direct_routes(request):
-    """
-    Return direct bus routes where source stop comes before destination stop
-    """
-    source_name = request.GET.get('source')
-    dest_name = request.GET.get('destination')
-
-    trip_patterns = TripPattern.objects.filter(
-        pattern_stops__stop__name__icontains=source_name
-    ).filter(
-        pattern_stops__stop__name__icontains=dest_name
-    ).distinct()
-
-    direct_routes = []
-
-    for pattern in trip_patterns:
-        try:
-            source_order = pattern.pattern_stops.get(stop__name__icontains=source_name).stop_order
-            dest_order = pattern.pattern_stops.get(stop__name__icontains=dest_name).stop_order
-
-            if source_order < dest_order:
-                direct_routes.append(pattern.route)
-        except TripPatternStop.DoesNotExist:
-            continue
-
-    serializer = BusRouteSerializer(direct_routes, many=True)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
 def nearby_stops(request):
     try:
         lat = float(request.GET.get('lat'))
@@ -421,57 +357,6 @@ def nearby_stops(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=400)
-
-
-@api_view(['GET'])
-def find_routes_with_transfer(request):
-    """
-    Find routes from source to destination using 1 transfer if needed
-    """
-    source_name = request.GET.get('source')
-    dest_name = request.GET.get('destination')
-
-    # Direct routes first
-    direct_trip_patterns = TripPattern.objects.filter(
-        pattern_stops__stop__name__icontains=source_name
-    ).filter(
-        pattern_stops__stop__name__icontains=dest_name
-    ).distinct()
-
-    direct_routes = []
-    for pattern in direct_trip_patterns:
-        try:
-            source_order = pattern.pattern_stops.get(stop__name__icontains=source_name).stop_order
-            dest_order = pattern.pattern_stops.get(stop__name__icontains=dest_name).stop_order
-            if source_order < dest_order:
-                direct_routes.append(pattern.route)
-        except TripPatternStop.DoesNotExist:
-            continue
-
-    # Routes with 1 transfer
-    transfer_routes = []
-    source_patterns = TripPattern.objects.filter(pattern_stops__stop__name__icontains=source_name)
-    dest_patterns = TripPattern.objects.filter(pattern_stops__stop__name__icontains=dest_name)
-
-    for src_pattern in source_patterns:
-        for dst_pattern in dest_patterns:
-            # find common stop for transfer
-            src_stops = set(src_pattern.stops.values_list('id', flat=True))
-            dst_stops = set(dst_pattern.stops.values_list('id', flat=True))
-            common_stops = src_stops.intersection(dst_stops)
-
-            if common_stops:
-                transfer_stop_id = list(common_stops)[0]
-                transfer_routes.append({
-                    'source_route': src_pattern.route.name,
-                    'transfer_stop': Stop.objects.get(id=transfer_stop_id).name,
-                    'destination_route': dst_pattern.route.name
-                })
-
-    return Response({
-        'direct_routes': [route.name for route in direct_routes],
-        'transfer_routes': transfer_routes
-    })
 
 
 from django.utils import timezone

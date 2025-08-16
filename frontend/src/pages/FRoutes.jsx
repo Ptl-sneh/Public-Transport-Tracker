@@ -5,18 +5,22 @@ import axios from 'axios'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import transferImg from '../icons/location.png'
+import busStopImg from '../icons/bus-stop.png'
 
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-})
+const busStopIcon = L.icon({
+    iconUrl: busStopImg,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40]
+});
 
-// Component to pan/zoom map to selected route
+const transferIcon = L.icon({
+    iconUrl: transferImg,
+    iconSize: [32, 32],       // adjust size
+    iconAnchor: [16, 32],     // anchor the point of the marker
+    popupAnchor: [0, -32]     // where popup opens relative to icon
+});
 const MapPanToSelected = ({ coordinates }) => {
     const map = useMap()
     if (coordinates && coordinates.length > 0) {
@@ -32,21 +36,26 @@ const FRoutes = () => {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [selectedRouteId, setSelectedRouteId] = useState(null)
+    const [stopSuggestions, setStopSuggestions] = useState({ source: [], destination: [] })
+    
 
-    const handleChange = (e) => {
-        setRouteForm({ ...routeForm, [e.target.name]: e.target.value })
+    const handleChange = async (e) => {
+        const { name, value } = e.target
+        setRouteForm({ ...routeForm, [name]: value })
+
+        if (value.length > 1) {
+            try {
+                const res = await axios.get('http://127.0.0.1:8000/api/stops/search/', { params: { q: value } })
+                const uniqueStops = [...new Set(res.data.map(s => s.name))]
+                setStopSuggestions(prev => ({ ...prev, [name]: uniqueStops }))
+            } catch { }
+        } else {
+            setStopSuggestions(prev => ({ ...prev, [name]: [] }))
+        }
     }
 
-    const generateRouteSteps = (route, source, destination) => {
-        if (!route.has_transfer) {
-            return [`Take ${route.route} from ${source}`, `Continue to ${destination}`]
-        } else {
-            return [
-                `Take ${route.route} from ${source}`,
-                `Change at ${route.changeover}`,
-                `Take connecting route to ${destination}`
-            ]
-        }
+    const handleSwap = () => {
+        setRouteForm(prev => ({ source: prev.destination, destination: prev.source }))
     }
 
     const handleSubmit = async (e) => {
@@ -66,11 +75,14 @@ const FRoutes = () => {
                 has_transfer: route.has_transfer,
                 source_coordinates: route.source_coordinates,
                 destination_coordinates: route.destination_coordinates,
+                transfer_coordinates: route.transfer_coordinates,   // ✅ add this
+                transfer_point: route.transfer_point,               // ✅ add this
                 shape: route.shape || [],
                 steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
                 time: route.has_transfer ? '50 mins' : '35 mins',
                 changeover: route.has_transfer ? route.transfer_point : 'None',
-            }))
+                next_bus_eta: route.next_bus_eta || '5 mins'
+            }));
 
             setSearchResults(results)
             setIsSearched(true)
@@ -82,30 +94,48 @@ const FRoutes = () => {
         }
     }
 
-    console.log(searchResults)
-
-    // Memoized selected route to avoid repeated search
+    const generateRouteSteps = (route, source, destination) => {
+        if (!route.has_transfer) {
+            return [`Take ${route.route} from ${source}`, `Continue to ${destination}`]
+        } else {
+            return [
+                `Take ${route.route} from ${source}`,
+                `Change at ${route.changeover}`,
+                `Take connecting route to ${destination}`
+            ]
+        }
+    }
+    
     const selectedRoute = useMemo(
         () => searchResults.find(r => r.id === selectedRouteId),
         [searchResults, selectedRouteId]
     )
+    console.log('object',selectedRoute)
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             <Navbar />
             <div className="max-w-6xl mx-auto px-4 py-8">
-                {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Plan Your Journey</h1>
                     <p className="text-gray-600 dark:text-gray-300 text-lg">Find the best route between any two stops</p>
                 </div>
 
-                {/* Search Form */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8 transition-colors duration-300">
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="flex justify-end mb-2">
+                            <button
+                                type="button"
+                                onClick={handleSwap}
+                                className="text-sm text-red-500 hover:underline"
+                            >
+                                Swap Source & Destination
+                            </button>
+                        </div>
+
                         <div className="grid md:grid-cols-2 gap-6">
                             {['source', 'destination'].map(name => (
-                                <div key={name}>
+                                <div key={name} className="relative">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         {name.charAt(0).toUpperCase() + name.slice(1)} Stop
                                     </label>
@@ -117,10 +147,28 @@ const FRoutes = () => {
                                         placeholder={`Enter ${name} stop`}
                                         required
                                         className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                        autoComplete="off"
                                     />
+                                    {stopSuggestions[name].length > 0 && (
+                                        <ul className="absolute z-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg w-full mt-1 max-h-40 overflow-auto text-sm text-gray-900 dark:text-white">
+                                            {stopSuggestions[name].map((s, idx) => (
+                                                <li
+                                                    key={idx}
+                                                    className="px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                                                    onClick={() => {
+                                                        setRouteForm({ ...routeForm, [name]: s })
+                                                        setStopSuggestions(prev => ({ ...prev, [name]: [] }))
+                                                    }}
+                                                >
+                                                    {s}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                             ))}
                         </div>
+
                         <div className="text-center">
                             <button
                                 type="submit"
@@ -134,10 +182,8 @@ const FRoutes = () => {
                     </form>
                 </div>
 
-                {/* Results */}
                 {isSearched && !isLoading && (
                     <div className="grid lg:grid-cols-2 gap-8" >
-                        {/* Route Cards */}
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Suggestions</h2>
                             <div className="space-y-4">
@@ -175,6 +221,10 @@ const FRoutes = () => {
                                                         {step}
                                                     </div>
                                                 ))}
+                                                {/* 🔹 FEATURE: show next bus ETA */}
+                                                <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                                                    ⏳ Next Bus ETA: {result.next_bus_eta}
+                                                </p>
                                             </div>
                                         </div>
                                     ))
@@ -186,50 +236,45 @@ const FRoutes = () => {
                             </div>
                         </div>
 
-                        {/* Route Map */}
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Map</h2>
                             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 h-96 transition-colors duration-300">
                                 {searchResults.length > 0 ? (
-                                    <MapContainer center={[23.0225, 72.5714]} zoom={13} className="w-full h-full">
+                                    <MapContainer center={[23.0225, 72.5714]} zoom={12} style={{ height: "400px", width: "100%" }}>
                                         <TileLayer
                                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                            attribution='&copy; OpenStreetMap contributors'
+                                            attribution="&copy; OpenStreetMap contributors"
                                         />
 
-                                        {/* Non-selected routes */}
-                                        {searchResults.filter(r => r.id !== selectedRouteId).map(r => (
-                                            <Polyline
-                                                key={r.id}
-                                                positions={r.shape}
-                                                color="gray"
-                                                weight={4}
-                                                opacity={0.7}
-                                            />
-                                        ))}
+                                        {/* Source Marker */}
+                                        <Marker position={selectedRoute.source_coordinates} icon = {busStopIcon}>
+                                            <Popup>Source: {routeForm.source}</Popup>
+                                        </Marker>
 
-                                        {/* Selected route */}
-                                        {selectedRoute && (
-                                            <>
-                                                <Polyline
-                                                    key={selectedRoute.id}
-                                                    positions={selectedRoute.shape}
-                                                    color="red"
-                                                    weight={5}
-                                                    opacity={0.9}
-                                                />
-                                                {selectedRoute.source_coordinates && (
-                                                    <Marker position={selectedRoute.source_coordinates}>
-                                                        <Popup>Source: {routeForm.source}</Popup>
-                                                    </Marker>
-                                                )}
-                                                {selectedRoute.destination_coordinates && (
-                                                    <Marker position={selectedRoute.destination_coordinates}>
-                                                        <Popup>Destination: {routeForm.destination}</Popup>
-                                                    </Marker>
-                                                )}
-                                                <MapPanToSelected coordinates={selectedRoute.shape} />
-                                            </>
+                                        {/* Destination Marker */}
+                                        <Marker position={selectedRoute.destination_coordinates} icon = {busStopIcon}>
+                                            <Popup>Destination: {routeForm.destination}</Popup>
+                                        </Marker>
+
+                                        {/* ✅ Transfer Marker */}
+                                        {selectedRoute?.transfer_coordinates && (
+                                            <Marker
+                                                position={selectedRoute.transfer_coordinates} 
+                                                icon = {transferIcon}
+                                            >
+                                                <Popup>
+                                                    Changeover: {selectedRoute.transfer_point}
+                                                </Popup>
+                                            </Marker>
+                                        )}
+
+                                        {/* Draw route shape(s) */}
+                                        {Array.isArray(selectedRoute.shape[0]) ? (
+                                            selectedRoute.shape.map((leg, idx) => (
+                                                <Polyline key={idx} positions={leg} color={idx === 0 ? "red" : "green"} />
+                                            ))
+                                        ) : (
+                                            <Polyline positions={selectedRoute.shape} color="red" />
                                         )}
                                     </MapContainer>
                                 ) : (

@@ -53,3 +53,4 @@ yarn-error.log*
 
 data/
 scraper/
+extra.py
