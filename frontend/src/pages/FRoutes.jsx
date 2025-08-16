@@ -13,14 +13,15 @@ const busStopIcon = L.icon({
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40]
-});
+})
 
 const transferIcon = L.icon({
     iconUrl: transferImg,
-    iconSize: [32, 32],       // adjust size
-    iconAnchor: [16, 32],     // anchor the point of the marker
-    popupAnchor: [0, -32]     // where popup opens relative to icon
-});
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40]
+})
+
 const MapPanToSelected = ({ coordinates }) => {
     const map = useMap()
     if (coordinates && coordinates.length > 0) {
@@ -37,7 +38,6 @@ const FRoutes = () => {
     const [error, setError] = useState(null)
     const [selectedRouteId, setSelectedRouteId] = useState(null)
     const [stopSuggestions, setStopSuggestions] = useState({ source: [], destination: [] })
-    
 
     const handleChange = async (e) => {
         const { name, value } = e.target
@@ -56,6 +56,18 @@ const FRoutes = () => {
 
     const handleSwap = () => {
         setRouteForm(prev => ({ source: prev.destination, destination: prev.source }))
+    }
+
+    const generateRouteSteps = (route, source, destination) => {
+        if (!route.has_transfer) {
+            return [`Take ${route.route} from ${source}`, `Continue to ${destination}`]
+        } else {
+            return [
+                `Take ${route.route} from ${source}`,
+                `Change at ${route.changeover}`,
+                `Take connecting route to ${destination}`
+            ]
+        }
     }
 
     const handleSubmit = async (e) => {
@@ -83,7 +95,6 @@ const FRoutes = () => {
                 changeover: route.has_transfer ? route.transfer_point : 'None',
                 next_bus_eta: route.next_bus_eta || '5 mins'
             }));
-
             setSearchResults(results)
             setIsSearched(true)
             if (results.length > 0) setSelectedRouteId(results[0].id)
@@ -94,23 +105,12 @@ const FRoutes = () => {
         }
     }
 
-    const generateRouteSteps = (route, source, destination) => {
-        if (!route.has_transfer) {
-            return [`Take ${route.route} from ${source}`, `Continue to ${destination}`]
-        } else {
-            return [
-                `Take ${route.route} from ${source}`,
-                `Change at ${route.changeover}`,
-                `Take connecting route to ${destination}`
-            ]
-        }
-    }
-    
     const selectedRoute = useMemo(
         () => searchResults.find(r => r.id === selectedRouteId),
         [searchResults, selectedRouteId]
     )
-    console.log('object',selectedRoute)
+    console.log('SR',searchResults)
+    console.log('sr',selectedRoute)
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -221,7 +221,6 @@ const FRoutes = () => {
                                                         {step}
                                                     </div>
                                                 ))}
-                                                {/* 🔹 FEATURE: show next bus ETA */}
                                                 <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
                                                     ⏳ Next Bus ETA: {result.next_bus_eta}
                                                 </p>
@@ -252,15 +251,15 @@ const FRoutes = () => {
                                         </Marker>
 
                                         {/* Destination Marker */}
-                                        <Marker position={selectedRoute.destination_coordinates} icon = {busStopIcon}>
+                                        <Marker position={selectedRoute.destination_coordinates} icon={busStopIcon}>
                                             <Popup>Destination: {routeForm.destination}</Popup>
                                         </Marker>
 
                                         {/* ✅ Transfer Marker */}
                                         {selectedRoute?.transfer_coordinates && (
                                             <Marker
-                                                position={selectedRoute.transfer_coordinates} 
-                                                icon = {transferIcon}
+                                                position={selectedRoute.transfer_coordinates}
+                                                icon={transferIcon}
                                             >
                                                 <Popup>
                                                     Changeover: {selectedRoute.transfer_point}
@@ -269,11 +268,13 @@ const FRoutes = () => {
                                         )}
 
                                         {/* Draw route shape(s) */}
-                                        {Array.isArray(selectedRoute.shape[0]) ? (
+                                        {Array.isArray(selectedRoute.shape[0][0]) ? (
+                                            // Case: transferred route (multi-leg)
                                             selectedRoute.shape.map((leg, idx) => (
                                                 <Polyline key={idx} positions={leg} color={idx === 0 ? "red" : "green"} />
                                             ))
                                         ) : (
+                                            // Case: direct route (single leg)
                                             <Polyline positions={selectedRoute.shape} color="red" />
                                         )}
                                     </MapContainer>
