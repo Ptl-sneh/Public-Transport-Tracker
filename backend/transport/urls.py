@@ -60,4 +60,5 @@ urlpatterns = [
     path('find_route/', views.find_routes, name='find_route'),
     
     path('coordinates/', views.all_stops_coordinates, name='all-stop-coordinates'),
+    path("bus-schedules/", views.bus_schedules, name="bus_schedules"),
 ]
