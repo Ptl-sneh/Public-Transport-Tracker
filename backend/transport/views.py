@@ -16,6 +16,8 @@ from .serializers import (
 )
 from django.contrib.auth.models import User
 
+from datetime import datetime
+
 
 # ----------------------
 # Stops
@@ -152,27 +154,39 @@ class ActiveServiceAlertsView(generics.ListAPIView):
 # Route Finder (Source → Destination)
 # ----------------------
 
-from geopy.distance import geodesic
 
 def get_shape_segment(shape_coords, source_coord, dest_coord):
-    # Find index of the shape point closest to source
     start_idx = min(range(len(shape_coords)), key=lambda i: geodesic(shape_coords[i], source_coord).meters)
-    # Find index of the shape point closest to destination
     end_idx = min(range(len(shape_coords)), key=lambda i: geodesic(shape_coords[i], dest_coord).meters)
-
     if start_idx > end_idx:
         start_idx, end_idx = end_idx, start_idx
-
     return shape_coords[start_idx:end_idx + 1]
 
 @api_view(['GET'])
 def find_routes(request):
     source_name = request.GET.get('source', '').strip()
     destination_name = request.GET.get('destination', '').strip()
+    selected_time_str = request.GET.get('time', '')  # HH:MM
+    
+    print(selected_time_str)
 
     if not source_name or not destination_name:
         return Response({"error": "Source and destination are required."}, status=400)
 
+    # Parse user-selected time
+    try:
+        if selected_time_str:
+            selected_time = datetime.strptime(selected_time_str, '%H:%M').time()
+            print('if st',selected_time)
+        else:
+            selected_time = timezone.localtime(timezone.now()).time()
+            print('else st',selected_time)
+    except:
+        selected_time = timezone.localtime(timezone.now()).time()
+        print('except st',selected_time)
+        
+
+    print('st',selected_time)
     valid_routes = []
 
     try:
@@ -194,6 +208,21 @@ def find_routes(request):
                     continue
 
                 if source_index < dest_index:
+                    # Find next 2–3 buses after selected_time
+                    upcoming_trips = BusTripStopTime.objects.filter(
+                        trip__pattern=pattern,
+                        stop=stops[source_index].stop,
+                        departure_time__gte=selected_time
+                    ).order_by('departure_time')[:3]
+
+                    next_buses = [
+                        {
+                            'trip_id': trip.trip.id,
+                            'departure_time': trip.departure_time.strftime('%H:%M'),
+                            'arrival_time': trip.arrival_time.strftime('%H:%M')
+                        } for trip in upcoming_trips
+                    ]
+
                     shape_coords = []
                     if getattr(route, 'shape', None) and getattr(route.shape, 'coordinates', None):
                         try:
@@ -202,7 +231,7 @@ def find_routes(request):
                                 [stops[source_index].stop.latitude, stops[source_index].stop.longitude],
                                 [stops[dest_index].stop.latitude, stops[dest_index].stop.longitude]
                             )
-                        except Exception:
+                        except:
                             pass
 
                     valid_routes.append({
@@ -213,11 +242,12 @@ def find_routes(request):
                         "source_coordinates": [stops[source_index].stop.latitude, stops[source_index].stop.longitude],
                         "destination_coordinates": [stops[dest_index].stop.latitude, stops[dest_index].stop.longitude],
                         "shape": shape_coords,
-                        "transfer_point": None
+                        "transfer_point": None,
+                        "next_buses": next_buses
                     })
                     break
 
-        # STEP 2 — ONE TRANSFER
+        # STEP 2 — ONE TRANSFER ROUTES
         if not valid_routes:
             source_routes = BusRoute.objects.filter(
                 trip_patterns__pattern_stops__stop__name__icontains=source_name
@@ -252,9 +282,38 @@ def find_routes(request):
                                     continue
 
                                 if transfer_idx < final_idx:
-                                    # Get shapes for both legs
-                                    leg1_shape, leg2_shape = [], []
+                                    # Find next buses for first leg
+                                    leg1_trips = BusTripStopTime.objects.filter(
+                                        trip__pattern=sp,
+                                        stop=source_stops[source_idx].stop,
+                                        departure_time__gte=selected_time
+                                    ).order_by('departure_time')[:3]
 
+                                    leg1_buses = [
+                                        {
+                                            'trip_id': t.trip.id,
+                                            'departure_time': t.departure_time.strftime('%H:%M'),
+                                            'arrival_time': t.arrival_time.strftime('%H:%M')
+                                        } for t in leg1_trips
+                                    ]
+
+                                    # Find next buses for second leg
+                                    leg2_trips = BusTripStopTime.objects.filter(
+                                        trip__pattern=dp,
+                                        stop=dest_stops[transfer_idx].stop,
+                                        departure_time__gte=selected_time
+                                    ).order_by('departure_time')[:3]
+
+                                    leg2_buses = [
+                                        {
+                                            'trip_id': t.trip.id,
+                                            'departure_time': t.departure_time.strftime('%H:%M'),
+                                            'arrival_time': t.arrival_time.strftime('%H:%M')
+                                        } for t in leg2_trips
+                                    ]
+
+                                    # Shapes for both legs
+                                    leg1_shape, leg2_shape = [], []
                                     if getattr(sr, 'shape', None) and getattr(sr.shape, 'coordinates', None):
                                         try:
                                             leg1_shape = get_shape_segment(
@@ -262,7 +321,7 @@ def find_routes(request):
                                                 [source_stops[source_idx].stop.latitude, source_stops[source_idx].stop.longitude],
                                                 [ps.stop.latitude, ps.stop.longitude]
                                             )
-                                        except Exception:
+                                        except:
                                             pass
 
                                     if getattr(dr, 'shape', None) and getattr(dr.shape, 'coordinates', None):
@@ -272,35 +331,32 @@ def find_routes(request):
                                                 [dest_stops[transfer_idx].stop.latitude, dest_stops[transfer_idx].stop.longitude],
                                                 [dest_stops[final_idx].stop.latitude, dest_stops[final_idx].stop.longitude]
                                             )
-                                        except Exception:
+                                        except:
                                             pass
 
                                     valid_routes.append({
-                                        "id": sr.id,   # ✅ always a real BusRoute PK
-                                        "second_leg_id": dr.id,   # optional, for display/debug
+                                        "id": sr.id,
+                                        "second_leg_id": dr.id,
                                         "name": f"{sr.name} → {dr.name}",
                                         "fare": 40.00,
                                         "has_transfer": True,
                                         "source_coordinates": [source_stops[source_idx].stop.latitude, source_stops[source_idx].stop.longitude],
                                         "destination_coordinates": [dest_stops[final_idx].stop.latitude, dest_stops[final_idx].stop.longitude],
                                         "transfer_coordinates": [ps.stop.latitude, ps.stop.longitude],
+                                        "transfer_point": ps.stop.name,
                                         "shape": [leg1_shape, leg2_shape],
-                                        "transfer_point": ps.stop.name
+                                        "next_buses": leg1_buses + leg2_buses  # combined list
                                     })
                                     found_transfer = True
                                     break
-                            if found_transfer:
-                                break
-                        if found_transfer:
-                            break
-                    if found_transfer:
-                        break
+                            if found_transfer: break
+                        if found_transfer: break
+                    if found_transfer: break
 
         return Response(valid_routes)
 
     except Exception as e:
         import traceback
-        print("ERROR in find_routes:", str(e))
         traceback.print_exc()
         return Response({"error": str(e)}, status=500)
 
@@ -309,15 +365,6 @@ def find_routes(request):
 # ----------------------
 # ETA for a Stop
 # ----------------------
-@api_view(['GET'])
-def stop_eta(request, stop_id):
-    try:
-        now = timezone.now().time()
-        stop_times = BusTripStopTime.objects.filter(stop_id=stop_id, departure_time__gte=now).order_by('departure_time')
-        serializer = BusTripStopTimeSerializer(stop_times, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -369,89 +416,6 @@ def nearby_stops(request):
     except Exception as e:
         return Response({'error': str(e)}, status=400)
 
-
-from django.utils import timezone
-from datetime import datetime, timedelta
-
-@api_view(['GET'])
-def stop_eta(request, stop_id):
-    """
-    Returns estimated arrival times (ETA) for all upcoming buses at a given stop.
-    Uses both scheduled BusTripStopTime and live bus locations if available.
-    """
-    try:
-        stop = Stop.objects.get(id=stop_id)
-        now = timezone.localtime(timezone.now()).time()
-
-        # 1️⃣ Scheduled trips
-        upcoming_trips = BusTripStopTime.objects.filter(
-            stop=stop,
-            arrival_time__gte=now
-        ).order_by('arrival_time')[:5]  # next 5 arrivals
-
-        scheduled_eta = []
-        for trip_time in upcoming_trips:
-            scheduled_eta.append({
-                'trip_id': trip_time.trip.id,
-                'route': trip_time.trip.pattern.route.name,
-                'scheduled_arrival': trip_time.arrival_time.strftime('%H:%M'),
-                'scheduled_departure': trip_time.departure_time.strftime('%H:%M')
-            })
-
-        # 2️⃣ Live bus location adjustment (if available)
-        live_locations = LiveBusLocation.objects.filter(
-            trip__in=[trip_time.trip for trip_time in upcoming_trips]
-        )
-
-        live_eta = []
-        for location in live_locations:
-            trip = location.trip
-            # Find the stop order for this stop
-            try:
-                stop_order = BusTripStopTime.objects.get(trip=trip, stop=stop).stop_order
-            except BusTripStopTime.DoesNotExist:
-                continue
-
-            # Find the nearest stop ahead of current bus location
-            upcoming_stops = BusTripStopTime.objects.filter(trip=trip, stop_order__gte=stop_order).order_by('stop_order')
-            if upcoming_stops.exists():
-                next_stop = upcoming_stops.first()
-                # Simple ETA calculation: assume average speed ~30km/h
-                distance = estimate_distance(location.latitude, location.longitude, next_stop.stop.latitude, next_stop.stop.longitude)
-                eta_minutes = max(int(distance / 500), 1)  # 500 m per minute approximation
-                eta_time = (datetime.combine(timezone.localtime(timezone.now()), now) + timedelta(minutes=eta_minutes)).time()
-                live_eta.append({
-                    'trip_id': trip.id,
-                    'route': trip.pattern.route.name,
-                    'estimated_arrival': eta_time.strftime('%H:%M')
-                })
-
-        return Response({
-            'stop': StopSerializer(stop).data,
-            'scheduled': scheduled_eta,
-            'live_estimates': live_eta
-        })
-
-    except Stop.DoesNotExist:
-        return Response({'error': 'Stop not found'}, status=404)
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
-
-
-def estimate_distance(lat1, lon1, lat2, lon2):
-    """
-    Returns approximate distance in meters between two coordinates
-    using Haversine formula.
-    """
-    import math
-    R = 6371000  # meters
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    d_phi = math.radians(lat2 - lat1)
-    d_lambda = math.radians(lon2 - lon1)
-    a = math.sin(d_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
 
 @api_view(['GET'])
 def all_stops_coordinates(request):

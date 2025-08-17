@@ -8,8 +8,7 @@ urlpatterns = [
     path('stops/', views.StopListView.as_view(), name='stop-list'),
     path('stops/<int:pk>/', views.StopDetailView.as_view(), name='stop-detail'),
     path('stops/search/', views.search_stops, name='search-stops'),
-    path('stops/nearby/', views.nearby_stops, name='nearby-stops'),
-    path('stops/<int:stop_id>/eta/', views.stop_eta, name='stop-eta'),
+    path('stops/nearby/', views.nearby_stops, name='nearby-stops'),\
 
     # ----------------------
     # Bus Routes

@@ -24,12 +24,15 @@ const transferIcon = L.icon({
 
 const MapPanToSelected = ({ coordinates }) => {
     const map = useMap()
-    if (coordinates && coordinates.length > 0) {
-        map.fitBounds(coordinates)
-    }
+
+    useEffect(() => {
+        if (coordinates && coordinates.length > 0) {
+            map.fitBounds(coordinates)
+        }
+    }, [coordinates, map])
+
     return null
 }
-
 const FRoutes = () => {
     const [routeForm, setRouteForm] = useState({ source: '', destination: '' })
     const [searchResults, setSearchResults] = useState([])
@@ -39,6 +42,7 @@ const FRoutes = () => {
     const [selectedRouteId, setSelectedRouteId] = useState(null)
     const [stopSuggestions, setStopSuggestions] = useState({ source: [], destination: [] })
     const [favourites, setFavourites] = useState([])
+    const [selectedTime, setSelectedTime] = useState('')
     
     const handleChange = async (e) => {
         const { name, value } = e.target
@@ -76,35 +80,54 @@ const FRoutes = () => {
         setIsLoading(true)
         setError(null)
         try {
+            // Send source, destination, and selected time to backend
             const response = await axios.get('http://127.0.0.1:8000/api/find_route/', {
-                params: { source: routeForm.source, destination: routeForm.destination },
+                params: {
+                    source: routeForm.source,
+                    destination: routeForm.destination,
+                    time: selectedTime  // user-selected travel time
+                },
             })
 
-            const results = response.data.map(route => ({
-                id: route.id,   // ✅ guaranteed to be a BusRoute PK (direct or transfer)
-                type: 'Bus',
-                route: route.name,
-                fare: `₹${route.fare}`,
-                has_transfer: route.has_transfer,
-                source_coordinates: route.source_coordinates,
-                destination_coordinates: route.destination_coordinates,
-                transfer_coordinates: route.transfer_coordinates,
-                transfer_point: route.transfer_point,
-                shape: route.shape || [],
-                steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
-                time: route.has_transfer ? '50 mins' : '35 mins',
-                changeover: route.has_transfer ? route.transfer_point : 'None',
-                next_bus_eta: route.next_bus_eta || '5 mins'
-            }))
+            // Map backend data to frontend format
+            const results = response.data
+           .filter(route => route.next_buses && route.next_buses.length > 0)   // ✅ drop routes with no buses
+           .map(route => {
+               const next_buses_text = route.next_buses
+                   .slice(0, 3)
+                   .map(b => b.departure_time)
+                   .join(', ')
+
+                return {
+                   id: route.id,
+                   type: 'Bus',
+                   route: route.name,
+                   fare: `₹${route.fare}`,
+                   has_transfer: route.has_transfer,
+                   source_coordinates: route.source_coordinates,
+                   destination_coordinates: route.destination_coordinates,
+                   transfer_coordinates: route.transfer_coordinates,
+                   transfer_point: route.transfer_point,
+                   shape: route.shape || [],
+                   steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
+                   time: route.has_transfer ? '50 mins' : '35 mins',
+                   changeover: route.has_transfer ? route.transfer_point : 'None',
+                   next_bus_eta: next_buses_text
+               }
+           })
+
             setSearchResults(results)
             setIsSearched(true)
             if (results.length > 0) setSelectedRouteId(results[0].id)
-        } catch {
+
+        } catch (err) {
+            console.error(err)
             setError('Could not find routes')
         } finally {
             setIsLoading(false)
         }
     }
+    console.log('sr',searchResults)
 
     const selectedRoute = useMemo(
         () => searchResults.find(r => r.id === selectedRouteId),
@@ -205,6 +228,18 @@ const FRoutes = () => {
                                 </div>
                             ))}
                         </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Select Travel Time
+                            </label>
+                            <input
+                                type="time"
+                                value={selectedTime}
+                                onChange={(e) => setSelectedTime(e.target.value)}
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                        </div>
 
                         <div className="text-center">
                             <button
@@ -280,9 +315,16 @@ const FRoutes = () => {
                                                         {step}
                                                     </div>
                                                 ))}
-                                                <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
-                                                    ⏳ Next Bus ETA: {result.next_bus_eta}
-                                                </p>
+
+                                                {/* ✅ Detailed Next Bus ETA */}
+                                                <div className="mt-3">
+                                                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">⏳ Next Buses:</p>
+                                                    <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
+                                                        {result.next_bus_eta.split(",").map((time, idx) => (
+                                                            <li key={idx} className="ml-2">{time.trim()}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
@@ -303,6 +345,19 @@ const FRoutes = () => {
                                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                             attribution="&copy; OpenStreetMap contributors"
                                         />
+
+                                        {selectedRoute && (
+                                            <MapPanToSelected
+                                                coordinates={[
+                                                    selectedRoute.source_coordinates,
+                                                    selectedRoute.destination_coordinates,
+                                                    ...(selectedRoute.transfer_coordinates ? [selectedRoute.transfer_coordinates] : []),
+                                                    ...(Array.isArray(selectedRoute.shape[0][0])
+                                                        ? selectedRoute.shape.flat()   // flatten multi-leg route
+                                                        : selectedRoute.shape)
+                                                ]}
+                                            />
+                                        )}
 
                                         {/* Source Marker */}
                                         <Marker position={selectedRoute.source_coordinates} icon = {busStopIcon}>
