@@ -130,7 +130,8 @@ class UserSerializer(serializers.ModelSerializer):
 class FavouriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favourite
-        fields = '__all__'
+        fields = ["id", "user", "route_identifier", "source", "destination"]
+        read_only_fields = ["user"]
 
 
 # ----------------------

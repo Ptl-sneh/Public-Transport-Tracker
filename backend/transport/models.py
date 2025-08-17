@@ -125,11 +125,13 @@ class LiveBusLocation(models.Model):
 # ----------------------
 class Favourite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    route = models.ForeignKey(BusRoute, on_delete=models.CASCADE, null=True, blank=True)
-    stop = models.ForeignKey(Stop, on_delete=models.CASCADE, null=True, blank=True)
+    route_identifier = models.CharField(max_length=100)  # e.g. "1D" or "12U-RL"
+    source = models.CharField(max_length=255, null=True, blank=True)
+    destination = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} fav {self.route or self.stop}"
+        return f"{self.user.username} fav {self.route_identifier} ({self.source} → {self.destination})"
+
 
 
 # ----------------------

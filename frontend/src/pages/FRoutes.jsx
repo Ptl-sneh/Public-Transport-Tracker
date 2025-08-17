@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect} from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import axios from 'axios'
@@ -38,7 +38,8 @@ const FRoutes = () => {
     const [error, setError] = useState(null)
     const [selectedRouteId, setSelectedRouteId] = useState(null)
     const [stopSuggestions, setStopSuggestions] = useState({ source: [], destination: [] })
-
+    const [favourites, setFavourites] = useState([])
+    
     const handleChange = async (e) => {
         const { name, value } = e.target
         setRouteForm({ ...routeForm, [name]: value })
@@ -80,21 +81,21 @@ const FRoutes = () => {
             })
 
             const results = response.data.map(route => ({
-                id: route.id,
+                id: route.id,   // ✅ guaranteed to be a BusRoute PK (direct or transfer)
                 type: 'Bus',
                 route: route.name,
                 fare: `₹${route.fare}`,
                 has_transfer: route.has_transfer,
                 source_coordinates: route.source_coordinates,
                 destination_coordinates: route.destination_coordinates,
-                transfer_coordinates: route.transfer_coordinates,   // ✅ add this
-                transfer_point: route.transfer_point,               // ✅ add this
+                transfer_coordinates: route.transfer_coordinates,
+                transfer_point: route.transfer_point,
                 shape: route.shape || [],
                 steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
                 time: route.has_transfer ? '50 mins' : '35 mins',
                 changeover: route.has_transfer ? route.transfer_point : 'None',
                 next_bus_eta: route.next_bus_eta || '5 mins'
-            }));
+            }))
             setSearchResults(results)
             setIsSearched(true)
             if (results.length > 0) setSelectedRouteId(results[0].id)
@@ -109,8 +110,44 @@ const FRoutes = () => {
         () => searchResults.find(r => r.id === selectedRouteId),
         [searchResults, selectedRouteId]
     )
-    console.log('SR',searchResults)
-    console.log('sr',selectedRoute)
+
+    // Fetch favourites with details
+    useEffect(() => {
+        axios.get("http://127.0.0.1:8000/api/favourites/", {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("access")}`,
+            },
+        })
+            .then(res => setFavourites(res.data)) // store full favourite objects
+            .catch(err => console.error("Error fetching favourites", err))
+    }, [])
+    // Toggle favourite
+    const handleToggleFavourite = async (route) => {
+        console.log("Posting favourite with route id:", route.id)
+        const existingFav = favourites.find(f =>
+            f.route_identifier === route.route &&
+            f.source === routeForm.source &&
+            f.destination === routeForm.destination
+        )
+
+        if (existingFav) {
+            // remove favourite
+            await axios.delete(`http://127.0.0.1:8000/api/favourites/${existingFav.id}/`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("access")}` },
+            })
+            setFavourites(favourites.filter(f => f.id !== existingFav.id))
+        } else {
+            // ✅ add with source/destination
+            const res = await axios.post("http://127.0.0.1:8000/api/favourites/", {
+                route_identifier: route.route,   // ✅ always a BusRoute PK now
+                source: routeForm.source,
+                destination: routeForm.destination
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("access")}` },
+            })
+            setFavourites([...favourites, res.data])
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -183,8 +220,8 @@ const FRoutes = () => {
                 </div>
 
                 {isSearched && !isLoading && (
-                    <div className="grid lg:grid-cols-2 gap-8" >
-                        <div>
+                    <div className="grid lg:grid-cols-3 gap-6" >
+                        <div className="lg:col-span-1">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Suggestions</h2>
                             <div className="space-y-4">
                                 {searchResults.length > 0 ? (
@@ -199,9 +236,31 @@ const FRoutes = () => {
                                                 <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
                                                     {result.type}
                                                 </span>
-                                                <div className="flex space-x-4 text-sm text-gray-600 dark:text-gray-400">
+
+                                                <div className="flex space-x-4 items-center text-sm text-gray-600 dark:text-gray-400">
                                                     <span>⏱️ {result.time}</span>
                                                     <span>💰 {result.fare}</span>
+                                                    <div key={result.id} className='mt-2'>
+                                                        <div className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-600 rounded">
+                                                            <h3 className="font-semibold text-lg">{result.route}</h3>
+
+                                                            {/* ⭐ Favourite toggle */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    handleToggleFavourite(result)
+                                                                }}
+                                                                className="text-yellow-500 text-xl cursor-pointer hover:bg-gray-600 rounded"
+                                                            >
+                                                                {favourites.some(f =>
+                                                                    f.route_identifier === result.route &&
+                                                                    f.source === routeForm.source &&
+                                                                    f.destination === routeForm.destination
+                                                                ) ? "★" : "☆"}
+                                                            </button>
+
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -235,11 +294,11 @@ const FRoutes = () => {
                             </div>
                         </div>
 
-                        <div>
+                        <div className="lg:col-span-2">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Map</h2>
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 h-96 transition-colors duration-300">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 h-[600px] transition-colors duration-300">
                                 {searchResults.length > 0 ? (
-                                    <MapContainer center={[23.0225, 72.5714]} zoom={12} style={{ height: "400px", width: "100%" }}>
+                                    <MapContainer center={[23.0225, 72.5714]} zoom={12} style={{ height: "100%", width: "100%"}}>
                                         <TileLayer
                                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                             attribution="&copy; OpenStreetMap contributors"

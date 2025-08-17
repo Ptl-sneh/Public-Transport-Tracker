@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
 from geopy.distance import geodesic
@@ -117,14 +117,24 @@ def live_bus_location(request):
 # ----------------------
 class FavouriteListCreateView(generics.ListCreateAPIView):
     serializer_class = FavouriteSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Favourite.objects.filter(user=self.request.user)
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)  # ✅ source & destination come from frontend
 
 class FavouriteDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FavouriteSerializer
     queryset = Favourite.objects.all()
+    
+class FavouriteDeleteView(generics.DestroyAPIView):
+    serializer_class = FavouriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Favourite.objects.filter(user=self.request.user)
 
 
 # ----------------------
@@ -266,14 +276,15 @@ def find_routes(request):
                                             pass
 
                                     valid_routes.append({
-                                        "id": f"{sr.id}-{dr.id}",
+                                        "id": sr.id,   # ✅ always a real BusRoute PK
+                                        "second_leg_id": dr.id,   # optional, for display/debug
                                         "name": f"{sr.name} → {dr.name}",
                                         "fare": 40.00,
                                         "has_transfer": True,
                                         "source_coordinates": [source_stops[source_idx].stop.latitude, source_stops[source_idx].stop.longitude],
                                         "destination_coordinates": [dest_stops[final_idx].stop.latitude, dest_stops[final_idx].stop.longitude],
                                         "transfer_coordinates": [ps.stop.latitude, ps.stop.longitude],
-                                        "shape": [leg1_shape, leg2_shape],  # send both legs
+                                        "shape": [leg1_shape, leg2_shape],
                                         "transfer_point": ps.stop.name
                                     })
                                     found_transfer = True
