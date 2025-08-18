@@ -3,5 +3,6 @@ from . import views
 
 urlpatterns = [
     path('feedback/', views.FeedbackCreateView.as_view(), name='create-feedback'),
-    path('feedback/route/<int:route_id>/', views.RouteFeedbackListView.as_view(), name='route-feedback'),
+    path('feedback/recent/', views.RecentFeedbackListView.as_view(), name='recent-feedback'),
+    path('feedback/stats/', views.FeedbackStatsView.as_view(), name='feedback-stats'),
 ]

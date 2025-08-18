@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -12,8 +12,17 @@ const Navbar = () => {
         if (token) {
             try {
                 const decoded = jwtDecode(token);
-                setUsername(decoded.username || decoded.name || "User");
                 console.log("Decoded JWT:", decoded);
+
+                // ✅ Try to extract username safely
+                const extractedName =
+                    decoded.username ||
+                    decoded.name ||
+                    decoded.email ||
+                    decoded.sub ||      // common in some JWTs
+                    `User-${decoded.user_id || ""}`;
+
+                setUsername(extractedName);
             } catch (error) {
                 console.error("Failed to decode JWT:", error);
                 setUsername(null);
@@ -22,7 +31,6 @@ const Navbar = () => {
             setUsername(null);
         }
     }, []);
-
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);

@@ -1,8 +1,8 @@
 from rest_framework import generics
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view ,permission_classes
 from rest_framework.response import Response
 from geopy.distance import geodesic
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny , IsAuthenticated
 from .models import Stop
 from .serializers import StopSerializer,UserSerializer
 
@@ -61,3 +61,13 @@ def all_stops_coordinates(request):
         for stop in stops
     ]
     return Response(data)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request):
+    user = request.user
+    return Response({
+        "username": user.username,
+        "email": user.email,
+        # add more if needed
+    })

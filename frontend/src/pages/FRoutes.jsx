@@ -4,6 +4,7 @@ import Footer from '../components/Footer'
 import axios from 'axios'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import Api from "../api/Api";
 import 'leaflet/dist/leaflet.css'
 import transferImg from '../icons/location.png'
 import busStopImg from '../icons/bus-stop.png'
@@ -12,168 +13,148 @@ const busStopIcon = L.icon({
     iconUrl: busStopImg,
     iconSize: [40, 40],
     iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
-})
+    popupAnchor: [0, -40],
+});
 
 const transferIcon = L.icon({
     iconUrl: transferImg,
     iconSize: [40, 40],
     iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
-})
+    popupAnchor: [0, -40],
+});
 
 const MapPanToSelected = ({ coordinates }) => {
-    const map = useMap()
-
+    const map = useMap();
     useEffect(() => {
         if (coordinates && coordinates.length > 0) {
-            map.fitBounds(coordinates)
+            map.fitBounds(coordinates);
         }
-    }, [coordinates, map])
+    }, [coordinates, map]);
+    return null;
+};
 
-    return null
-}
 const FRoutes = () => {
-    const [routeForm, setRouteForm] = useState({ source: '', destination: '' })
-    const [searchResults, setSearchResults] = useState([])
-    const [isSearched, setIsSearched] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState(null)
-    const [selectedRouteId, setSelectedRouteId] = useState(null)
-    const [stopSuggestions, setStopSuggestions] = useState({ source: [], destination: [] })
-    const [favourites, setFavourites] = useState([])
-    const [selectedTime, setSelectedTime] = useState('')
-    
+    const [routeForm, setRouteForm] = useState({ source: "", destination: "" });
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearched, setIsSearched] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [selectedRouteId, setSelectedRouteId] = useState(null);
+    const [stopSuggestions, setStopSuggestions] = useState({ source: [], destination: [] });
+    const [favourites, setFavourites] = useState([]);
+    const [selectedTime, setSelectedTime] = useState("");
+
     const handleChange = async (e) => {
-        const { name, value } = e.target
-        setRouteForm({ ...routeForm, [name]: value })
+        const { name, value } = e.target;
+        setRouteForm({ ...routeForm, [name]: value });
 
         if (value.length > 1) {
             try {
-                const res = await axios.get('http://127.0.0.1:8000/api/stops/search/', { params: { q: value } })
-                const uniqueStops = [...new Set(res.data.map(s => s.name))]
-                setStopSuggestions(prev => ({ ...prev, [name]: uniqueStops }))
+                const res = await Api.get("/stops/search/", { params: { q: value } });
+                const uniqueStops = [...new Set(res.data.map((s) => s.name))];
+                setStopSuggestions((prev) => ({ ...prev, [name]: uniqueStops }));
             } catch { }
         } else {
-            setStopSuggestions(prev => ({ ...prev, [name]: [] }))
+            setStopSuggestions((prev) => ({ ...prev, [name]: [] }));
         }
-    }
+    };
 
     const handleSwap = () => {
-        setRouteForm(prev => ({ source: prev.destination, destination: prev.source }))
-    }
+        setRouteForm((prev) => ({ source: prev.destination, destination: prev.source }));
+    };
 
     const generateRouteSteps = (route, source, destination) => {
-        console.log('route',route)
         if (!route.has_transfer) {
-            return [`Take ${route.name} from ${source}`, `Continue to ${destination}`]
+            return [`Take ${route.name} from ${source}`, `Continue to ${destination}`];
         } else {
             return [
                 `Take ${route.sr_bus} from ${source}`,
-                `Change at ${route.transfer_point}`,  // Use transfer_point instead of changeover
-                `Take ${route.dr_name} to ${destination}`
-            ]
+                `Change at ${route.transfer_point}`,
+                `Take ${route.dr_name} to ${destination}`,
+            ];
         }
-    }
+    };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        setIsLoading(true)
-        setError(null)
+        e.preventDefault();
+        setIsLoading(true);
+        setError(null);
         try {
-            // Send source, destination, and selected time to backend
-            const response = await axios.get('http://127.0.0.1:8000/api/find_route/', {
+            const response = await Api.get("/find_route/", {
                 params: {
                     source: routeForm.source,
                     destination: routeForm.destination,
-                    time: selectedTime  // user-selected travel time
+                    time: selectedTime,
                 },
-            })
+            });
 
-            // Map backend data to frontend format
             const results = response.data
-            .filter(route => route.next_buses && route.next_buses.length > 0)   // ✅ drop routes with no buses
-            .map(route => {
-               const next_buses_text = route.next_buses
-                   .slice(0, 3)
-                   .map(b => b.departure_time)
-                   .join(', ')
+                .filter((route) => route.next_buses && route.next_buses.length > 0)
+                .map((route) => {
+                    const next_buses_text = route.next_buses
+                        .slice(0, 3)
+                        .map((b) => b.departure_time)
+                        .join(", ");
+                    return {
+                        id: route.id,
+                        type: "Bus",
+                        route: route.name,
+                        fare: `₹${route.fare}`,
+                        has_transfer: route.has_transfer,
+                        source_coordinates: route.source_coordinates,
+                        destination_coordinates: route.destination_coordinates,
+                        transfer_coordinates: route.transfer_coordinates,
+                        transfer_point: route.transfer_point,
+                        shape: route.shape || [],
+                        steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
+                        time: route.has_transfer ? "50 mins" : "35 mins",
+                        changeover: route.has_transfer ? route.transfer_point : "None",
+                        next_bus_eta: next_buses_text,
+                    };
+                });
 
-                return {
-                    Fl: route.sr_bus,
-                    Sl:route.dr_name,
-                    id: route.id,
-                    type: 'Bus',
-                    route: route.name,
-                    fare: `₹${route.fare}`,
-                    has_transfer: route.has_transfer,
-                    source_coordinates: route.source_coordinates,
-                    destination_coordinates: route.destination_coordinates,
-                    transfer_coordinates: route.transfer_coordinates,
-                    transfer_point: route.transfer_point,
-                    shape: route.shape || [],
-                    steps: generateRouteSteps(route,routeForm.source, routeForm.destination),
-                    time: route.has_transfer ? '50 mins' : '35 mins',
-                    changeover: route.has_transfer ? route.transfer_point : 'None',
-                    next_bus_eta: next_buses_text
-                }
-            })
-
-            setSearchResults(results)
-            setIsSearched(true)
-            if (results.length > 0) setSelectedRouteId(results[0].id)
-
-        } catch (err) {
-            console.error(err)
-            setError('Could not find routes')
+            setSearchResults(results);
+            setIsSearched(true);
+            if (results.length > 0) setSelectedRouteId(results[0].id);
+        } catch {
+            setError("Could not find routes");
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
-    console.log('sr',searchResults)
+    };
 
     const selectedRoute = useMemo(
-        () => searchResults.find(r => r.id === selectedRouteId),
+        () => searchResults.find((r) => r.id === selectedRouteId),
         [searchResults, selectedRouteId]
-    )
+    );
 
-    // Fetch favourites with details
+    // Fetch favourites
     useEffect(() => {
-        axios.get("http://127.0.0.1:8000/api/favourites/", {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("access")}`,
-            },
-        })
-            .then(res => setFavourites(res.data)) // store full favourite objects
-            .catch(err => console.error("Error fetching favourites", err))
-    }, [])
-    // Toggle favourite
+        Api.get("/favourites/")
+            .then((res) => setFavourites(res.data))
+            .catch((err) => console.error("Error fetching favourites", err));
+    }, []);
+
     const handleToggleFavourite = async (route) => {
-        console.log("Posting favourite with route id:", route.id)
-        const existingFav = favourites.find(f =>
-            f.route_identifier === route.route &&
-            f.source === routeForm.source &&
-            f.destination === routeForm.destination
-        )
+        const existingFav = favourites.find(
+            (f) =>
+                f.route_identifier === route.route &&
+                f.source === routeForm.source &&
+                f.destination === routeForm.destination
+        );
 
         if (existingFav) {
-            // remove favourite
-            await axios.delete(`http://127.0.0.1:8000/api/favourites/${existingFav.id}/`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("access")}` },
-            })
-            setFavourites(favourites.filter(f => f.id !== existingFav.id))
+            await Api.delete(`/favourites/${existingFav.id}/`);
+            setFavourites(favourites.filter((f) => f.id !== existingFav.id));
         } else {
-            // ✅ add with source/destination
-            const res = await axios.post("http://127.0.0.1:8000/api/favourites/", {
-                route_identifier: route.route,   // ✅ always a BusRoute PK now
+            const res = await Api.post("/favourites/", {
+                route_identifier: route.route,
                 source: routeForm.source,
-                destination: routeForm.destination
-            }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("access")}` },
-            })
-            setFavourites([...favourites, res.data])
+                destination: routeForm.destination,
+            });
+            setFavourites([...favourites, res.data]);
         }
-    }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">

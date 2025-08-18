@@ -8,4 +8,5 @@ urlpatterns = [
     path('stops/search/', views.search_stops, name='search-stops'),
     path('stops/nearby/', views.nearby_stops, name='nearby-stops'),
     path('stops/coordinates/', views.all_stops_coordinates, name='all-stops-coordinates'),
+    path("auth/me/", views.get_user_profile, name="get_user_profile"),
 ]
