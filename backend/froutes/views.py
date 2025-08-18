@@ -189,8 +189,11 @@ def find_routes(request):
                                             )
                                         except:
                                             pass
-
+                                    print('FL',sr.name)
+                                    print('SL',dr.name)
                                     valid_routes.append({
+                                        'sr_bus': sr.name,
+                                        'dr_name' : dr.name,
                                         "id": sr.id,
                                         "second_leg_id": dr.id,
                                         "name": f"{sr.name} → {dr.name}",

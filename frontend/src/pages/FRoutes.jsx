@@ -64,13 +64,14 @@ const FRoutes = () => {
     }
 
     const generateRouteSteps = (route, source, destination) => {
+        console.log('route',route)
         if (!route.has_transfer) {
-            return [`Take ${route.route} from ${source}`, `Continue to ${destination}`]
+            return [`Take ${route.name} from ${source}`, `Continue to ${destination}`]
         } else {
             return [
-                `Take ${route.route} from ${source}`,
-                `Change at ${route.changeover}`,
-                `Take connecting route to ${destination}`
+                `Take ${route.sr_bus} from ${source}`,
+                `Change at ${route.transfer_point}`,  // Use transfer_point instead of changeover
+                `Take ${route.dr_name} to ${destination}`
             ]
         }
     }
@@ -91,30 +92,32 @@ const FRoutes = () => {
 
             // Map backend data to frontend format
             const results = response.data
-           .filter(route => route.next_buses && route.next_buses.length > 0)   // ✅ drop routes with no buses
-           .map(route => {
+            .filter(route => route.next_buses && route.next_buses.length > 0)   // ✅ drop routes with no buses
+            .map(route => {
                const next_buses_text = route.next_buses
                    .slice(0, 3)
                    .map(b => b.departure_time)
                    .join(', ')
 
                 return {
-                   id: route.id,
-                   type: 'Bus',
-                   route: route.name,
-                   fare: `₹${route.fare}`,
-                   has_transfer: route.has_transfer,
-                   source_coordinates: route.source_coordinates,
-                   destination_coordinates: route.destination_coordinates,
-                   transfer_coordinates: route.transfer_coordinates,
-                   transfer_point: route.transfer_point,
-                   shape: route.shape || [],
-                   steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
-                   time: route.has_transfer ? '50 mins' : '35 mins',
-                   changeover: route.has_transfer ? route.transfer_point : 'None',
-                   next_bus_eta: next_buses_text
-               }
-           })
+                    Fl: route.sr_bus,
+                    Sl:route.dr_name,
+                    id: route.id,
+                    type: 'Bus',
+                    route: route.name,
+                    fare: `₹${route.fare}`,
+                    has_transfer: route.has_transfer,
+                    source_coordinates: route.source_coordinates,
+                    destination_coordinates: route.destination_coordinates,
+                    transfer_coordinates: route.transfer_coordinates,
+                    transfer_point: route.transfer_point,
+                    shape: route.shape || [],
+                    steps: generateRouteSteps(route,routeForm.source, routeForm.destination),
+                    time: route.has_transfer ? '50 mins' : '35 mins',
+                    changeover: route.has_transfer ? route.transfer_point : 'None',
+                    next_bus_eta: next_buses_text
+                }
+            })
 
             setSearchResults(results)
             setIsSearched(true)

@@ -2,8 +2,6 @@ from django.db import models
 from home.models import Stop,User
 from sroutes.models import TripPattern
 
-
-
 # Create your models here.
 
 class BusTrip(models.Model):
