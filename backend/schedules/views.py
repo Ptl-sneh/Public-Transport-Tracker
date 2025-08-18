@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view
 from sroutes.models import BusRoute
 from froutes.models import BusTrip
 from rest_framework.response import Response
+from rest_framework import generics
+from froutes.serializers import BusTripSerializer
 
 
 
@@ -42,3 +44,10 @@ def bus_schedules(request):
             })
 
     return Response(schedules)
+
+class RouteTripsView(generics.ListAPIView):
+    serializer_class = BusTripSerializer
+
+    def get_queryset(self):
+        route_id = self.kwargs['pk']
+        return BusTrip.objects.filter(pattern__route_id=route_id)

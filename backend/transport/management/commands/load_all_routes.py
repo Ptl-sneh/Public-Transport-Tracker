@@ -2,7 +2,9 @@ from datetime import datetime, timedelta
 import os
 import json
 from django.core.management.base import BaseCommand
-from transport.models import Stop, BusRoute, TripPattern, TripPatternStop, BusTrip, BusTripStopTime , RouteShape
+from home.models import Stop
+from sroutes.models import BusRoute, TripPattern, TripPatternStop, RouteShape
+from froutes.models import BusTrip, BusTripStopTime
 
 class Command(BaseCommand):
     help = "Load route once, generate multiple trips with per-stop timings"
@@ -63,7 +65,7 @@ class Command(BaseCommand):
             )
 
         # Timing configuration
-        start_time = datetime.strptime("07:25", "%H:%M")
+        start_time = datetime.strptime("06:00", "%H:%M")
         trip_interval = timedelta(minutes=10)  # Every 10 minutes
         time_per_stop = timedelta(minutes=3)   # Example gap between stops
         dwell_time = timedelta(seconds=30)     # Stop waiting time
@@ -72,7 +74,7 @@ class Command(BaseCommand):
         trip_duration = total_stops_time
 
         # Generate trips
-        for i in range(50):  # 106 trips
+        for i in range(60):  # 106 trips
             departure_time = (start_time + i * trip_interval).time()
             arrival_time = (datetime.combine(datetime.today(), departure_time) + trip_duration).time()
 
@@ -97,4 +99,4 @@ class Command(BaseCommand):
                 )
                 current_time += time_per_stop
 
-        self.stdout.write(self.style.SUCCESS(f"✅ Created route {route_code} with 106 trips and stop-wise timings"))
+        self.stdout.write(self.style.SUCCESS(f"Created route {route_code} with 60 trips and stop-wise timings"))

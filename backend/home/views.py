@@ -2,8 +2,13 @@ from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from geopy.distance import geodesic
+from rest_framework.permissions import AllowAny
 from .models import Stop
-from .serializers import StopSerializer
+from .serializers import StopSerializer,UserSerializer
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
 class StopListView(generics.ListCreateAPIView):
     queryset = Stop.objects.all()
