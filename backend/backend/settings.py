@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'sroutes',
     'froutes',
     'schedules',
+    'feedback'
 ]
 
 MIDDLEWARE = [

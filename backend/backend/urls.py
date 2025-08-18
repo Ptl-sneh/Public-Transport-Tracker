@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/', include('sroutes.urls')), 
     path('api/', include('froutes.urls')),
     path('api/', include('schedules.urls')),
+    path('api/', include('feedback.urls')),
     # JWT Token Endpoints
     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
