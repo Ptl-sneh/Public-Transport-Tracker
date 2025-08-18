@@ -44,7 +44,7 @@ export default function Footer() {
                                 Routes
                             </Link>
                             <Link
-                                to="/find-route"
+                                to="/findroute"
                                 className="block text-gray-300 dark:text-gray-400 hover:text-red-400 transition-colors"
                             >
                                 Find Route

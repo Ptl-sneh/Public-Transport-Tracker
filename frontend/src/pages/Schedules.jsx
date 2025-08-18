@@ -31,7 +31,7 @@ export default function Schedules() {
         console.log('route',route)
         setSelectedRoute(route)
         setIsModalOpen(true)
-        axios.get(`http://127.0.0.1:8000/api/bus-routes/${route}/trips/`)
+        axios.get(`http://127.0.0.1:8000/api/bus-routes/${route.route_id}/trips/`)
             .then((res) => setTrips(res.data))
             .catch((err) => console.error("Error fetching trips:", err))
     }
@@ -80,7 +80,7 @@ export default function Schedules() {
                                 {filteredSchedules.map((schedule, index) => (
                                     <tr
                                         key={index}
-                                        onClick={() => openTripsModal(schedule.route_id)}
+                                        onClick={() => openTripsModal(schedule)}
                                         className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                                     >
                                         <td className="px-6 py-4">
