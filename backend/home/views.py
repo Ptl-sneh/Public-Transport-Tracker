@@ -66,6 +66,7 @@ def all_stops_coordinates(request):
 @permission_classes([IsAuthenticated])
 def get_user_profile(request):
     user = request.user
+    print(user)
     return Response({
         "username": user.username,
         "email": user.email,

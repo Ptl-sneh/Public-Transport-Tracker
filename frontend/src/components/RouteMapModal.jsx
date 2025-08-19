@@ -115,7 +115,11 @@ const RouteMapModal = ({ routeId, isOpen, onClose }) => {
                             click: () => setSelectedStop([stop.lat, stop.lng]), // fly to stop on click
                         }}
                     >
-                        <Popup>{stop.name}</Popup>
+                        <Popup>
+                            <div className="text-sm font-semibold text-blue-600 bg-white p-2 rounded-lg shadow-md">
+                                {stop.name}
+                            </div>
+                        </Popup>7
                     </Marker>
                 ))}
 

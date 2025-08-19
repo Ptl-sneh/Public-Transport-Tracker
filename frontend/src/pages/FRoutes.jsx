@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useEffect} from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import axios from 'axios'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import Api from "../api/Api";
+import Api from "../api/Api"   // ✅ use Api instance with interceptors
 import 'leaflet/dist/leaflet.css'
 import transferImg from '../icons/location.png'
 import busStopImg from '../icons/bus-stop.png'
@@ -44,6 +43,7 @@ const FRoutes = () => {
     const [favourites, setFavourites] = useState([]);
     const [selectedTime, setSelectedTime] = useState("");
 
+    // ✅ Handle input change + fetch stop suggestions
     const handleChange = async (e) => {
         const { name, value } = e.target;
         setRouteForm({ ...routeForm, [name]: value });
@@ -53,7 +53,9 @@ const FRoutes = () => {
                 const res = await Api.get("/stops/search/", { params: { q: value } });
                 const uniqueStops = [...new Set(res.data.map((s) => s.name))];
                 setStopSuggestions((prev) => ({ ...prev, [name]: uniqueStops }));
-            } catch { }
+            } catch (err) {
+                console.error("Error fetching stop suggestions:", err);
+            }
         } else {
             setStopSuggestions((prev) => ({ ...prev, [name]: [] }));
         }
@@ -75,6 +77,7 @@ const FRoutes = () => {
         }
     };
 
+    // ✅ Find route
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -116,7 +119,8 @@ const FRoutes = () => {
             setSearchResults(results);
             setIsSearched(true);
             if (results.length > 0) setSelectedRouteId(results[0].id);
-        } catch {
+        } catch (err) {
+            console.error("Error finding route:", err);
             setError("Could not find routes");
         } finally {
             setIsLoading(false);
@@ -128,13 +132,14 @@ const FRoutes = () => {
         [searchResults, selectedRouteId]
     );
 
-    // Fetch favourites
+    // ✅ Fetch favourites on load
     useEffect(() => {
         Api.get("/favourites/")
             .then((res) => setFavourites(res.data))
-            .catch((err) => console.error("Error fetching favourites", err));
+            .catch((err) => console.error("Error fetching favourites:", err));
     }, []);
 
+    // ✅ Toggle favourite
     const handleToggleFavourite = async (route) => {
         const existingFav = favourites.find(
             (f) =>
@@ -143,16 +148,20 @@ const FRoutes = () => {
                 f.destination === routeForm.destination
         );
 
-        if (existingFav) {
-            await Api.delete(`/favourites/${existingFav.id}/`);
-            setFavourites(favourites.filter((f) => f.id !== existingFav.id));
-        } else {
-            const res = await Api.post("/favourites/", {
-                route_identifier: route.route,
-                source: routeForm.source,
-                destination: routeForm.destination,
-            });
-            setFavourites([...favourites, res.data]);
+        try {
+            if (existingFav) {
+                await Api.delete(`/favourites/${existingFav.id}/`);
+                setFavourites(favourites.filter((f) => f.id !== existingFav.id));
+            } else {
+                const res = await Api.post("/favourites/", {
+                    route_identifier: route.route,
+                    source: routeForm.source,
+                    destination: routeForm.destination,
+                });
+                setFavourites([...favourites, res.data]);
+            }
+        } catch (err) {
+            console.error("Error toggling favourite:", err);
         }
     };
 
@@ -165,6 +174,7 @@ const FRoutes = () => {
                     <p className="text-gray-600 dark:text-gray-300 text-lg">Find the best route between any two stops</p>
                 </div>
 
+                {/* Search form */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8 transition-colors duration-300">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="flex justify-end mb-2">
@@ -238,8 +248,10 @@ const FRoutes = () => {
                     </form>
                 </div>
 
+                {/* Results */}
                 {isSearched && !isLoading && (
-                    <div className="grid lg:grid-cols-3 gap-6" >
+                    <div className="grid lg:grid-cols-3 gap-6">
+                        {/* Left panel */}
                         <div className="lg:col-span-1">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Suggestions</h2>
                             <div className="space-y-4">
@@ -247,8 +259,7 @@ const FRoutes = () => {
                                     searchResults.map(result => (
                                         <div
                                             key={result.id}
-                                            className={`bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer ${selectedRouteId === result.id ? 'border-2 border-red-500' : ''
-                                                }`}
+                                            className={`bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer ${selectedRouteId === result.id ? 'border-2 border-red-500' : ''}`}
                                             onClick={() => setSelectedRouteId(result.id)}
                                         >
                                             <div className="flex items-center justify-between mb-4">
@@ -262,8 +273,6 @@ const FRoutes = () => {
                                                     <div key={result.id} className='mt-2'>
                                                         <div className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-600 rounded">
                                                             <h3 className="font-semibold text-lg">{result.route}</h3>
-
-                                                            {/* ⭐ Favourite toggle */}
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation()
@@ -277,7 +286,6 @@ const FRoutes = () => {
                                                                     f.destination === routeForm.destination
                                                                 ) ? "★" : "☆"}
                                                             </button>
-
                                                         </div>
                                                     </div>
                                                 </div>
@@ -300,7 +308,6 @@ const FRoutes = () => {
                                                     </div>
                                                 ))}
 
-                                                {/* ✅ Detailed Next Bus ETA */}
                                                 <div className="mt-3">
                                                     <p className="text-sm font-medium text-gray-800 dark:text-gray-200">⏳ Next Buses:</p>
                                                     <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
@@ -320,59 +327,47 @@ const FRoutes = () => {
                             </div>
                         </div>
 
+                        {/* Right panel */}
                         <div className="lg:col-span-2">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Route Map</h2>
                             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 h-[600px] transition-colors duration-300">
-                                {searchResults.length > 0 ? (
-                                    <MapContainer center={[23.0225, 72.5714]} zoom={12} style={{ height: "100%", width: "100%"}}>
+                                {searchResults.length > 0 && selectedRoute ? (
+                                    <MapContainer center={[23.0225, 72.5714]} zoom={12} style={{ height: "100%", width: "100%" }} className='z-0'>
                                         <TileLayer
                                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                             attribution="&copy; OpenStreetMap contributors"
                                         />
 
-                                        {selectedRoute && (
-                                            <MapPanToSelected
-                                                coordinates={[
-                                                    selectedRoute.source_coordinates,
-                                                    selectedRoute.destination_coordinates,
-                                                    ...(selectedRoute.transfer_coordinates ? [selectedRoute.transfer_coordinates] : []),
-                                                    ...(Array.isArray(selectedRoute.shape[0][0])
-                                                        ? selectedRoute.shape.flat()   // flatten multi-leg route
-                                                        : selectedRoute.shape)
-                                                ]}
-                                            />
-                                        )}
+                                        <MapPanToSelected
+                                            coordinates={[
+                                                selectedRoute.source_coordinates,
+                                                selectedRoute.destination_coordinates,
+                                                ...(selectedRoute.transfer_coordinates ? [selectedRoute.transfer_coordinates] : []),
+                                                ...(Array.isArray(selectedRoute.shape[0][0])
+                                                    ? selectedRoute.shape.flat()
+                                                    : selectedRoute.shape)
+                                            ]}
+                                        />
 
-                                        {/* Source Marker */}
-                                        <Marker position={selectedRoute.source_coordinates} icon = {busStopIcon}>
+                                        <Marker position={selectedRoute.source_coordinates} icon={busStopIcon}>
                                             <Popup>Source: {routeForm.source}</Popup>
                                         </Marker>
 
-                                        {/* Destination Marker */}
                                         <Marker position={selectedRoute.destination_coordinates} icon={busStopIcon}>
                                             <Popup>Destination: {routeForm.destination}</Popup>
                                         </Marker>
 
-                                        {/* ✅ Transfer Marker */}
                                         {selectedRoute?.transfer_coordinates && (
-                                            <Marker
-                                                position={selectedRoute.transfer_coordinates}
-                                                icon={transferIcon}
-                                            >
-                                                <Popup>
-                                                    Changeover: {selectedRoute.transfer_point}
-                                                </Popup>
+                                            <Marker position={selectedRoute.transfer_coordinates} icon={transferIcon}>
+                                                <Popup>Changeover: {selectedRoute.transfer_point}</Popup>
                                             </Marker>
                                         )}
 
-                                        {/* Draw route shape(s) */}
                                         {Array.isArray(selectedRoute.shape[0][0]) ? (
-                                            // Case: transferred route (multi-leg)
                                             selectedRoute.shape.map((leg, idx) => (
                                                 <Polyline key={idx} positions={leg} color={idx === 0 ? "red" : "green"} />
                                             ))
                                         ) : (
-                                            // Case: direct route (single leg)
                                             <Polyline positions={selectedRoute.shape} color="red" />
                                         )}
                                     </MapContainer>

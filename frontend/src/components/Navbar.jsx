@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
+import axios from 'axios'
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -8,28 +8,43 @@ const Navbar = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem("access");
-        if (token) {
+        const fetchUser = async () => {
+            let access = localStorage.getItem("access");
+            const refresh = localStorage.getItem("refresh");
+
             try {
-                const decoded = jwtDecode(token);
-                console.log("Decoded JWT:", decoded);
+                // ✅ Try with current access token
+                const res = await axios.get("http://127.0.0.1:8000/api/auth/me/", {
+                    headers: { Authorization: `Bearer ${access}` },
+                });
+                setUsername(res.data.username);
+            } catch (err) {
+                if (err.response?.status === 401 && refresh) {
+                    try {
+                        // ✅ Refresh the token
+                        const refreshRes = await axios.post("http://127.0.0.1:8000/api/auth/refresh/", {
+                            refresh,
+                        });
+                        access = refreshRes.data.access;
+                        localStorage.setItem("access", access);
 
-                // ✅ Try to extract username safely
-                const extractedName =
-                    decoded.username ||
-                    decoded.name ||
-                    decoded.email ||
-                    decoded.sub ||      // common in some JWTs
-                    `User-${decoded.user_id || ""}`;
-
-                setUsername(extractedName);
-            } catch (error) {
-                console.error("Failed to decode JWT:", error);
-                setUsername(null);
+                        // 🔁 Retry request with new token
+                        const res = await axios.get("http://127.0.0.1:8000/api/auth/me/", {
+                            headers: { Authorization: `Bearer ${access}` },
+                        });
+                        setUsername(res.data.username);
+                    } catch (refreshErr) {
+                        console.error("Refresh token expired:", refreshErr);
+                        localStorage.clear();
+                        window.location.href = "/login";
+                    }
+                } else {
+                    console.error("Failed to fetch user:", err);
+                }
             }
-        } else {
-            setUsername(null);
-        }
+        };
+
+        fetchUser();
     }, []);
 
     const toggleMenu = () => {
@@ -59,7 +74,6 @@ const Navbar = () => {
                         <Link to="/findroute" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Find Route</Link>
                         <Link to="/schedules" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Schedules</Link>
                         <Link to="/feedback" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Feedback</Link>
-                        <Link to="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Dashboard</Link>
                     </div>
 
                     {/* Desktop Auth Section */}
@@ -114,7 +128,6 @@ const Navbar = () => {
                             <Link to="/findroute" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Find Route</Link>
                             <Link to="/schedules" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Schedules</Link>
                             <Link to="/feedback" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Feedback</Link>
-                            <Link to="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors">Dashboard</Link>
 
                             {/* Mobile Auth Buttons */}
                             <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">

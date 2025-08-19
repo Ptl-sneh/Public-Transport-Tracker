@@ -68,12 +68,6 @@ export default function Footer() {
                             >
                                 Feedback
                             </Link>
-                            <Link
-                                to="/dashboard"
-                                className="block text-gray-300 dark:text-gray-400 hover:text-red-400 transition-colors"
-                            >
-                                Dashboard
-                            </Link>
                             <Link to="#" className="block text-gray-300 dark:text-gray-400 hover:text-red-400 transition-colors">
                                 Help Center
                             </Link>

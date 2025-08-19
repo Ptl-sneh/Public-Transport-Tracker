@@ -8,6 +8,3 @@ class FeedbackSerializer(serializers.ModelSerializer):
         model = Feedback
         fields = ["id", "username", "comment", "rating", "sentiment", "created_at"]
         read_only_fields = ["id", "username", "sentiment", "created_at"]
-
-    def create(self, validated_data):
-        return super().create(validated_data)

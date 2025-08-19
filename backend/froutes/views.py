@@ -1,6 +1,6 @@
 
 from geopy.distance import geodesic
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view , permission_classes
 from rest_framework.response import Response
 from datetime import datetime
 from django.utils import timezone
@@ -228,13 +228,29 @@ class FavouriteListCreateView(generics.ListCreateAPIView):
         return Favourite.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)  # ✅ source & destination come from frontend
+        serializer.save(user=self.request.user) # ✅ source & destination come from frontend
+
+
+class FavouriteListCreateView(generics.ListCreateAPIView):
+    serializer_class = FavouriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Favourite.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 class FavouriteDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FavouriteSerializer
-    queryset = Favourite.objects.all()
-    
-class FavouriteDeleteView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Favourite.objects.filter(user=self.request.user)
+
+
+class UserFavouritesView(generics.ListAPIView):
     serializer_class = FavouriteSerializer
     permission_classes = [IsAuthenticated]
 

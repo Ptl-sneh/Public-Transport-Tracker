@@ -22,6 +22,7 @@ export default function Feedback() {
     const fetchRecentFeedback = async () => {
         try {
             const res = await Api.get("feedback/recent/");
+            console.log(res.data)
             setPastFeedback(res.data);
         } catch (err) {
             console.error("Error fetching feedback:", err);

@@ -18,7 +18,9 @@ class BusTripSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class FavouriteSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+
     class Meta:
         model = Favourite
-        fields = ["id", "user", "route_identifier", "source", "destination"]
-        read_only_fields = ["user"]
+        fields = ["id", "username", "route_identifier", "source", "destination"]
+        read_only_fields = ["id", "username"]
