@@ -1,5 +1,4 @@
 import React from 'react'
-import { FaTrain } from 'react-icons/fa';
 import { useState } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
@@ -31,22 +30,15 @@ const Login = () => {
         // Handle login logic here
     };
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full mb-4">
-                    <FaTrain className="w-8 h-8 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">TransitTrack</h1>
-                <p className="text-gray-600 text-sm">Your journey, tracked</p>
-            </div>
-            <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-5 shadow-2xl border-0 bg-white/90 backdrop-blur-sm rounded-2xl">
-                <p className="text-2xl font-bold text-center text-gray-900">Welcome Back!</p>
-                <p className="text-center text-gray-600 text-base">Login to your account to continue</p>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="max-w-md mx-auto w-100 px-4 sm:px-6 lg:px-8 py-5 shadow-2xl border-0 bg-gray-50 dark:bg-gray-800 backdrop-blur-sm rounded-xl absolute top-45 left-145">
+                <p className="text-2xl font-bold text-center text-white">Welcome Back!</p>
+                <p className="text-center text-white text-base">Login to your account to continue</p>
 
                 <div className="mt-8">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-white">
                                 Username
                             </label>
                             <input
@@ -62,7 +54,7 @@ const Login = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-sm font-medium text-white">
                                 Password
                             </label>
                             <div className="relative">
@@ -92,13 +84,13 @@ const Login = () => {
 
                         <button
                             type="submit"
-                            className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] rounded"
+                            className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] rounded-xl"
                         >
                             Login
                         </button>
                     </form>
                     <div className="text-center pt-4 border-t border-gray-100">
-                        <p className="text-gray-600">
+                        <p className="text-white">
                             Don't have an account?{' '}
                             <Link
                                 to="/register"

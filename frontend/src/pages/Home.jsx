@@ -130,25 +130,12 @@ const Home = () => {
             <Navbar />
 
             <div className="max-w-6xl mx-auto px-4 py-8">
-                {/* Header */}
-                <div className="mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                        Your Dashboard
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-300 text-lg">
-                        Welcome back, {user?.name}!
-                    </p>
-                </div>
-
                 {/* User Info */}
                 <div className="bg-gradient-to-r from-red-500 to-orange-500 dark:from-red-600 dark:to-orange-600 text-white rounded-2xl p-8 mb-8 shadow-lg">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold mb-2">{user?.name}</h2>
-                            <p className="opacity-90">{user?.email}</p>
-                            <p className="opacity-75 text-sm">
-                                Member since {user?.joinDate}
-                            </p>
+                            <h2 className="text-3xl font-bold mb-2"> Welcome back, {user.name}</h2>
+                            <p className="text-xl opacity-90"> {user.email}</p>
                         </div>
                         <div className="text-6xl opacity-50">👤</div>
                     </div>
