@@ -3,9 +3,15 @@ import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import axios from 'axios';
-
+import busStopImg from '../icons/bus.png'
 Modal.setAppElement('#root');
 
+const busStopIcon = L.icon({
+    iconUrl: busStopImg,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
+});
 // 🔹 Helper component to adjust map view
 const FitRouteBounds = ({ positions }) => {
     const map = useMap();
@@ -114,6 +120,7 @@ const RouteMapModal = ({ routeId, isOpen, onClose }) => {
                         eventHandlers={{
                             click: () => setSelectedStop([stop.lat, stop.lng]), // fly to stop on click
                         }}
+                        icon = {busStopIcon}
                     >
                         <Popup>
                             <div className="text-sm font-semibold text-blue-600 bg-white p-2 rounded-lg shadow-md">

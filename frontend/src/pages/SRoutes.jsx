@@ -3,6 +3,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import RouteMapModal from '../components/RouteMapModal';
+import BackToTop from '../components/BackToTop';
 
 const SRoutes = () => {
     const [searchRoute, setSearchRoute] = useState("");
@@ -104,6 +105,7 @@ const SRoutes = () => {
                     </div>
                 )}
             </div>
+            <BackToTop/>
             <Footer />
         </div>
     );

@@ -5,8 +5,9 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L from 'leaflet'
 import Api from "../api/Api"   // ✅ use Api instance with interceptors
 import 'leaflet/dist/leaflet.css'
-import transferImg from '../icons/location.png'
-import busStopImg from '../icons/bus-stop.png'
+import transferImg from '../icons/YRH.png'
+import busStopImg from '../icons/bus.png'
+import BackToTop from '../components/BackToTop'
 
 const busStopIcon = L.icon({
     iconUrl: busStopImg,
@@ -17,8 +18,8 @@ const busStopIcon = L.icon({
 
 const transferIcon = L.icon({
     iconUrl: transferImg,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
+    iconSize: [50, 50],
+    iconAnchor: [20, 42],
     popupAnchor: [0, -40],
 });
 
@@ -42,6 +43,8 @@ const FRoutes = () => {
     const [stopSuggestions, setStopSuggestions] = useState({ source: [], destination: [] });
     const [favourites, setFavourites] = useState([]);
     const [selectedTime, setSelectedTime] = useState("");
+    const [alertMessage, setAlertMessage] = useState(null);
+
 
     // ✅ Handle input change + fetch stop suggestions
     const handleChange = async (e) => {
@@ -152,6 +155,7 @@ const FRoutes = () => {
             if (existingFav) {
                 await Api.delete(`/favourites/${existingFav.id}/`);
                 setFavourites(favourites.filter((f) => f.id !== existingFav.id));
+                setAlertMessage(`🚫 Route "${route.route}" removed from favourites`);
             } else {
                 const res = await Api.post("/favourites/", {
                     route_identifier: route.route,
@@ -159,15 +163,27 @@ const FRoutes = () => {
                     destination: routeForm.destination,
                 });
                 setFavourites([...favourites, res.data]);
+                setAlertMessage(`⭐ Route "${route.route}" added to favourites`);
             }
+
+            // Auto-hide alert after 3 seconds
+            setTimeout(() => setAlertMessage(null), 3000);
+
         } catch (err) {
             console.error("Error toggling favourite:", err);
+            setAlertMessage("❌ Something went wrong. Try again.");
+            setTimeout(() => setAlertMessage(null), 4000);
         }
     };
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             <Navbar />
+            {alertMessage && (
+                <div className="fixed top-5 right-5 z-50 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg animate-fade-in-down">
+                    {alertMessage}
+                </div>
+            )}
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Plan Your Journey</h1>
@@ -381,6 +397,7 @@ const FRoutes = () => {
                     </div>
                 )}
             </div>
+            <BackToTop/>
             <Footer />
         </div>
     )

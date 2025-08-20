@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
 import axios from "axios"
 import Modal from "react-modal"
+import BackToTop from "../components/BackToTop"
 
 Modal.setAppElement("#root") // important for accessibility
 
@@ -165,7 +166,7 @@ export default function Schedules() {
                     <p className="text-gray-600 dark:text-gray-300">No trips available.</p>
                 )}
             </Modal>
-
+            <BackToTop/>
             <Footer />
         </div>
     )

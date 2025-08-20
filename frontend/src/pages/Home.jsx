@@ -6,13 +6,15 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import { useMap } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from 'leaflet';
-import yourL from '../icons/YRH.png'
-import BS from '../icons/BusStop.png'
+import yourL from '../icons/you-are-here.png'
+import BS from '../icons/bus.png'
 import Api from '../api/Api'
+import BackToTop from "../components/BackToTop"
+
 
 const you_are_here = L.icon({
     iconUrl: yourL,
-    iconSize: [50, 50],
+    iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40],
 });
@@ -48,30 +50,33 @@ const Home = () => {
                 setUser({
                     name: userRes.data.username,
                     email: userRes.data.email,
-                    joinDate: userRes.data.date_joined?.split("T")[0] || "N/A",
                 })
 
-                // ✅ Fetch user favourites
                 const favRes = await Api.get("/favourites/user/")
                 setFavourites(Array.isArray(favRes.data) ? favRes.data : [])
 
-                // ✅ Fetch user feedback
                 const fbRes = await Api.get("/feedback/user/")
                 setSubmittedFeedback(Array.isArray(fbRes.data) ? fbRes.data : [])
 
-                // ✅ Get user’s current location
+                // Get user’s current location with better accuracy
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (pos) => {
                             const { latitude, longitude } = pos.coords
                             setCurrentLocation([latitude, longitude])
 
-                            // Fetch nearest stops
                             Api.get(`/stops/nearby/?lat=${latitude}&lng=${longitude}`)
                                 .then(res => setNearestStops(res.data))
                                 .catch(err => console.error(err))
                         },
-                        (err) => console.error(err)
+                        (err) => {
+                            console.error("Geolocation error:", err)
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        }
                     )
                 }
             } catch (err) {
@@ -84,6 +89,7 @@ const Home = () => {
 
         fetchData()
     }, [])
+
 
     const getSentimentColor = (sentiment) => {
         switch (sentiment) {
@@ -104,12 +110,6 @@ const Home = () => {
         submittedFeedback.length > 0
             ? Math.round((positiveFeedbackCount / submittedFeedback.length) * 100)
             : 0
-
-    const handleLogout = () => {
-        localStorage.removeItem("access")
-        localStorage.removeItem("refresh") // ✅ Clear both
-        window.location.href = "/login"
-    }
 
     if (loading) {
         return (
@@ -251,30 +251,6 @@ const Home = () => {
                     </div>
                 </div>
 
-                {/* Account Settings */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                        Account Settings
-                    </h2>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <button className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300">
-                            Change Email
-                        </button>
-                        <button className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300">
-                            Change Password
-                        </button>
-                        <button className="bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300">
-                            Preferences
-                        </button>
-                        <button
-                            onClick={handleLogout}
-                            className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-
                 <div className="mt-8 grid md:grid-cols-3 gap-6">
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl text-center border border-blue-100 dark:border-blue-800 transition-colors duration-300">
                         <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">{feedbackPercentage}%</div>
@@ -292,7 +268,7 @@ const Home = () => {
                     </div>
                 </div>
             </div>
-
+            <BackToTop/>
             <Footer />
         </div>
     )

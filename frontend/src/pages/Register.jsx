@@ -64,8 +64,6 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // block if errors exist
         if (Object.values(errors).some((err) => err !== '')) return;
 
         try {
@@ -79,38 +77,42 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-gray-900 via-gray-800 to-black px-4">
+            <div className="max-w-md w-full bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-700">
 
-            <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-5 shadow-2xl bg-gray-50 dark:bg-gray-800 rounded-2xl">
-                <FaUserPlus className="w-10 h-10 text-orange-600 mx-auto" />
-                <p className="text-2xl font-bold text-center text-white">Create an Account</p>
-                <p className="text-center text-white text-base">Sign up to access live tracking and feedback</p>
+                {/* Icon + Title */}
+                <div className="text-center">
+                    <FaUserPlus className="w-12 h-12 text-orange-500 mx-auto mb-3 animate-bounce" />
+                    <h2 className="text-3xl font-extrabold text-white">Create an Account</h2>
+                    <p className="text-gray-300 mt-1">Sign up to access live tracking & feedback 🚀</p>
+                </div>
 
-                <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+
                     {/* Username */}
                     <div>
-                        <label className="text-sm font-medium text-white">User name</label>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Username</label>
                         <input
                             id="username"
                             name="username"
                             type="text"
-                            placeholder="Enter your Username"
+                            placeholder="Enter your username"
                             value={formData.username}
                             onChange={handleInputChange}
                             onBlur={handleBlur}
-                            className={`h-12 border rounded px-3 w-full focus:ring-orange-500 ${touched.username && errors.username
-                                    ? 'border-red-400'
-                                    : 'border-gray-200 focus:border-orange-500'
-                                }`}
+                            className={`h-12 w-full rounded-lg px-4 bg-gray-900/70 text-white placeholder-gray-400 
+              border ${touched.username && errors.username ? 'border-red-500' : 'border-gray-700 focus:border-orange-500'} 
+              focus:ring-2 focus:ring-orange-500 outline-none transition`}
                         />
                         {touched.username && errors.username && (
-                            <p className="text-red-500 text-sm">{errors.username}</p>
+                            <p className="text-red-500 text-sm mt-1">{errors.username}</p>
                         )}
                     </div>
 
                     {/* Email */}
                     <div>
-                        <label className="text-sm font-medium text-white">Email</label>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Email</label>
                         <input
                             id="email"
                             name="email"
@@ -119,19 +121,18 @@ const Register = () => {
                             value={formData.email}
                             onChange={handleInputChange}
                             onBlur={handleBlur}
-                            className={`h-12 border rounded px-3 w-full focus:ring-orange-500 ${touched.email && errors.email
-                                    ? 'border-red-400'
-                                    : 'border-gray-200 focus:border-orange-500'
-                                }`}
+                            className={`h-12 w-full rounded-lg px-4 bg-gray-900/70 text-white placeholder-gray-400 
+              border ${touched.email && errors.email ? 'border-red-500' : 'border-gray-700 focus:border-orange-500'} 
+              focus:ring-2 focus:ring-orange-500 outline-none transition`}
                         />
                         {touched.email && errors.email && (
-                            <p className="text-red-500 text-sm">{errors.email}</p>
+                            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                         )}
                     </div>
 
                     {/* Password */}
                     <div>
-                        <label className="text-sm font-medium text-white">Password</label>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Password</label>
                         <div className="relative">
                             <input
                                 id="password"
@@ -141,40 +142,39 @@ const Register = () => {
                                 value={formData.password}
                                 onChange={handleInputChange}
                                 onBlur={handleBlur}
-                                className={`h-12 pr-12 border rounded px-3 w-full focus:ring-orange-500 ${touched.password && errors.password
-                                        ? 'border-red-400'
-                                        : 'border-gray-200 focus:border-orange-500'
-                                    }`}
+                                className={`h-12 w-full rounded-lg px-4 pr-12 bg-gray-900/70 text-white placeholder-gray-400 
+                border ${touched.password && errors.password ? 'border-red-500' : 'border-gray-700 focus:border-orange-500'} 
+                focus:ring-2 focus:ring-orange-500 outline-none transition`}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-400 transition"
                             >
                                 {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                             </button>
                         </div>
 
-                        {/* Live password strength rules */}
-                        <ul className="text-sm mt-2 space-y-1">
-                            <li className={passwordRules.length(formData.password) ? 'text-green-600' : 'text-red-500'}>
+                        {/* Password Strength */}
+                        <ul className="mt-2 text-sm space-y-1">
+                            <li className={passwordRules.length(formData.password) ? 'text-green-500' : 'text-red-500'}>
                                 • At least 8 characters
                             </li>
-                            <li className={passwordRules.upper(formData.password) ? 'text-green-600' : 'text-red-500'}>
+                            <li className={passwordRules.upper(formData.password) ? 'text-green-500' : 'text-red-500'}>
                                 • At least one uppercase letter
                             </li>
-                            <li className={passwordRules.number(formData.password) ? 'text-green-600' : 'text-red-500'}>
+                            <li className={passwordRules.number(formData.password) ? 'text-green-500' : 'text-red-500'}>
                                 • At least one number
                             </li>
-                            <li className={passwordRules.special(formData.password) ? 'text-green-600' : 'text-red-500'}>
-                                • At least one special character (@$!%*?&#)
+                            <li className={passwordRules.special(formData.password) ? 'text-green-500' : 'text-red-500'}>
+                                • At least one special character
                             </li>
                         </ul>
                     </div>
 
                     {/* Confirm Password */}
                     <div>
-                        <label className="text-sm font-medium text-white">Confirm Password</label>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Confirm Password</label>
                         <div className="relative">
                             <input
                                 id="confirmPassword"
@@ -184,24 +184,20 @@ const Register = () => {
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
                                 onBlur={handleBlur}
-                                className={`h-12 pr-12 border rounded px-3 w-full focus:ring-orange-500 ${touched.confirmPassword && errors.confirmPassword
-                                        ? 'border-red-400'
-                                        : 'border-gray-200 focus:border-orange-500'
-                                    }`}
+                                className={`h-12 w-full rounded-lg px-4 pr-12 bg-gray-900/70 text-white placeholder-gray-400 
+                border ${touched.confirmPassword && errors.confirmPassword ? 'border-red-500' : 'border-gray-700 focus:border-orange-500'} 
+                focus:ring-2 focus:ring-orange-500 outline-none transition`}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-400 transition"
                             >
                                 {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                             </button>
                         </div>
                         {formData.confirmPassword && (
-                            <p
-                                className={`text-sm ${formData.confirmPassword === formData.password ? 'text-green-600' : 'text-red-500'
-                                    }`}
-                            >
+                            <p className={`mt-2 text-sm ${formData.confirmPassword === formData.password ? 'text-green-500' : 'text-red-500'}`}>
                                 {formData.confirmPassword === formData.password
                                     ? '✅ Passwords match'
                                     : '❌ Passwords do not match'}
@@ -209,19 +205,24 @@ const Register = () => {
                         )}
                     </div>
 
-                    {/* Submit */}
+                    {/* Submit Button */}
                     <button
                         type="submit"
-                        className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold text-lg shadow-lg hover:scale-[1.02] rounded"
+                        className="w-full h-12 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold text-lg shadow-lg 
+            hover:scale-105 hover:shadow-orange-500/40 transition transform"
                     >
                         Register
                     </button>
                 </form>
 
-                <div className="text-center pt-4 border-t border-gray-100">
-                    <p className="text-white">
+                {/* Footer */}
+                <div className="text-center mt-6 border-t border-gray-700 pt-4">
+                    <p className="text-gray-300">
                         Already have an account?{' '}
-                        <Link to="/login" className="font-semibold text-orange-600 hover:underline">
+                        <Link
+                            to="/login"
+                            className="font-semibold text-orange-500 hover:text-orange-400 transition underline"
+                        >
                             Login here
                         </Link>
                     </p>

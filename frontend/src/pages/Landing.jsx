@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 import { FaTrain } from 'react-icons/fa';
+import BackToTop from '../components/BackToTop';
 
 const Landing = () => {
     return (
@@ -13,7 +14,7 @@ const Landing = () => {
                                 <FaTrain className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-white">TransitTrack</h1>
+                                <h1 className="text-2xl font-bold text-red-500 hover:text-red-600 transition-colors">APTT</h1>
                                 <p className="text-xs text-white">Your journey, tracked</p>
                             </div>
                         </div>
@@ -36,7 +37,7 @@ const Landing = () => {
                     <div className="animate-fade-in-up">
                         <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
                             Ahmedabad Public
-                            <span className="text-red-500 block">Transport Tracker</span>
+                            <span className="text-red-500 block">Ahmedabad Public Transport Tracker</span>
                         </h1>
                         <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
                             Track Buses, Metros & Plan Your Trip Instantly
@@ -92,6 +93,7 @@ const Landing = () => {
                     </div>
                 </footer>
             </div>
+            <BackToTop/>
         </>
     )
 }

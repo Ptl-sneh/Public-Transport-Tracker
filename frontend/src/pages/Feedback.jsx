@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Api from "../api/Api"; // ✅ use your central axios instance with refresh logic
+import BackToTop from "../components/BackToTop";
 
 export default function Feedback() {
     const [feedbackForm, setFeedbackForm] = useState({ rating: 0, comment: "" });
@@ -265,6 +266,7 @@ export default function Feedback() {
                     </div>
                 </div>
             </div>
+            <BackToTop/>
             <Footer />
         </div>
     );

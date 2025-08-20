@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaTrain } from 'react-icons/fa';
 import axios from 'axios'
 
 const Navbar = () => {
@@ -63,9 +64,17 @@ const Navbar = () => {
             <div className="max-w-6xl mx-auto px-4">
                 <div className="flex justify-between items-center py-4">
                     {/* Logo */}
-                    <Link to="/" className="text-2xl font-bold text-red-500 hover:text-red-600 transition-colors">
-                        APTT
-                    </Link>
+                    <div className='flex items-center space-x-3'>
+                        <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                            <FaTrain className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <Link to="/" className="text-2xl font-bold text-red-500 hover:text-red-600 transition-colors">
+                                APTT
+                            </Link>
+                            <p className="text-xs text-white">Your journey, tracked</p>
+                        </div>
+                    </div>
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-8">

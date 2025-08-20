@@ -9,6 +9,7 @@ import L from 'leaflet';
 import yourL from '../icons/YRH.png'
 import BS from '../icons/BusStop.png'
 import Api from '../api/Api'
+import BackToTop from "../components/BackToTop"
 
 const you_are_here = L.icon({
     iconUrl: yourL,
@@ -305,7 +306,7 @@ const UserDashboard = () => {
                     </div>
                 </div>
             </div>
-
+            <BackToTop/>
             <Footer />
         </div>
     )
