@@ -124,149 +124,149 @@ export default function Feedback() {
     }[rating] || "");
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-gray-50 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-black transition-colors duration-700">
             <Navbar />
-            <div className="max-w-6xl mx-auto px-4 py-8">
+            <main className="max-w-6xl mx-auto px-6 py-10 space-y-14">
+
                 {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                <section className="text-center max-w-3xl mx-auto">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-3">
                         Submit Feedback
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-300 text-lg">
-                        Help us improve Ahmedabad's public transport system
+                    <p className="text-lg text-gray-600 dark:text-gray-300">
+                        Help us improve Ahmedabad&apos;s public transport system
                     </p>
-                </div>
+                </section>
 
-                <div className="grid lg:grid-cols-2 gap-8">
+                {/* Form & Recent Feedback Grid */}
+                <section className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
                     {/* Feedback Form */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 transition-colors duration-300">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl px-10 py-8 transition-colors duration-300">
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
                             Share Your Experience
                         </h2>
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-8">
+
                             {/* Rating */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                <label className="block mb-3 text-gray-700 dark:text-gray-300 font-semibold text-lg">
                                     Rate Your Experience
                                 </label>
-                                <div className="flex items-center space-x-1 mb-2">
+                                <div className="flex items-center space-x-3 mb-3">
                                     {renderStars(feedbackForm.rating, true)}
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <div className="flex justify-between items-center mb-2">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 min-h-[24px]">
                                         {getRatingText(hoveredRating || feedbackForm.rating)}
                                     </p>
-                                    {(feedbackForm.rating > 0 || hoveredRating > 0) && (
-                                        <span className="text-sm font-medium text-red-500">
+                                    {(feedbackForm.rating || hoveredRating) > 0 && (
+                                        <span className="text-sm font-semibold text-red-500">
                                             {hoveredRating || feedbackForm.rating}/5 stars
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-2">
-                                    <span>Poor</span><span>Fair</span><span>Good</span>
-                                    <span>Very Good</span><span>Excellent</span>
+                                <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 select-none">
+                                    <span>Poor</span>
+                                    <span>Fair</span>
+                                    <span>Good</span>
+                                    <span>Very Good</span>
+                                    <span>Excellent</span>
                                 </div>
                             </div>
-                            {/* Comment */}
+
+                            {/* Comment Textarea */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                                     Your Comments
                                 </label>
                                 <textarea
                                     value={feedbackForm.comment}
                                     onChange={handleCommentChange}
-                                    rows={4}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                    rows={5}
+                                    maxLength={500}
                                     placeholder="Share your experience, suggestions, or report issues..."
                                     required
-                                    maxLength={500}
+                                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-3 focus:outline-none focus:ring-4 focus:ring-red-400 focus:border-transparent resize-none transition"
                                 />
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">
                                     {feedbackForm.comment.length}/500 characters
                                 </p>
                             </div>
+
+                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 disabled={feedbackForm.rating === 0 || loading}
-                                className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl disabled:transform-none"
+                                className="w-full py-4 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300 disabled:cursor-not-allowed"
                             >
-                                {loading
-                                    ? "Submitting..."
-                                    : feedbackForm.rating === 0
-                                        ? "Please select a rating"
-                                        : "Submit Feedback"}
+                                {loading ? "Submitting..." : feedbackForm.rating === 0 ? "Please select a rating" : "Submit Feedback"}
                             </button>
                         </form>
                     </div>
 
-                    {/* Recent Feedback */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 transition-colors duration-300">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Recent Feedback</h2>
-                        <div className="space-y-4 max-h-96 overflow-y-auto">
-                            {pastFeedback.map((f) => (
+                    {/* Past Feedback */}
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl px-10 py-8 transition-colors duration-300 max-h-[650px] overflow-y-auto">
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+                            Recent Feedback
+                        </h2>
+                        {pastFeedback.length === 0 && (
+                            <div className="text-center text-gray-500 dark:text-gray-400 space-y-2">
+                                <div className="text-5xl select-none">💬</div>
+                                <p>No feedback available yet</p>
+                            </div>
+                        )}
+                        <div className="space-y-6">
+                            {pastFeedback.map((fb) => (
                                 <div
-                                    key={f.id}
-                                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-all duration-300 bg-gray-50 dark:bg-gray-700"
+                                    key={fb.id}
+                                    className="p-5 border border-gray-200 dark:border-gray-700 rounded-2xl hover:shadow-lg bg-gray-50 dark:bg-gray-700 transition"
                                 >
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="flex items-center">
-                                                {renderStars(f.rating)}
-                                                <span className="ml-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-                                                    {f.rating}/5
-                                                </span>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-1 text-yellow-400">
+                                                {renderStars(fb.rating)}
+                                                <span className="ml-2 font-semibold text-gray-700 dark:text-gray-300">{fb.rating}/5</span>
                                             </div>
-                                            {f.sentiment && (
-                                                <span
-                                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${getSentimentColor(f.sentiment)}`}
-                                                >
-                                                    {f.sentiment}
+                                            {fb.sentiment && (
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getSentimentColor(fb.sentiment)}`}>
+                                                    {fb.sentiment}
                                                 </span>
                                             )}
                                         </div>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            {new Date(f.created_at).toLocaleDateString()}
-                                        </span>
+                                        <time className="text-sm text-gray-500 dark:text-gray-400">
+                                            {new Date(fb.created_at).toLocaleDateString()}
+                                        </time>
                                     </div>
-                                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{f.comment}</p>
-                                    {f.username && (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">- {f.username}</p>
+                                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{fb.comment}</p>
+                                    {fb.username && (
+                                        <p className="mt-3 text-gray-500 dark:text-gray-400 italic text-sm">— {fb.username}</p>
                                     )}
                                 </div>
                             ))}
                         </div>
-                        {pastFeedback.length === 0 && (
-                            <div className="text-center py-8">
-                                <div className="text-gray-400 dark:text-gray-500 text-4xl mb-3">💬</div>
-                                <p className="text-gray-500 dark:text-gray-400">No feedback available yet</p>
-                            </div>
-                        )}
                     </div>
-                </div>
+                </section>
 
                 {/* Stats */}
-                <div className="mt-12 grid md:grid-cols-3 gap-6">
-                    <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-xl text-center transition-colors duration-300">
-                        <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                            {getStatValue("positive_percentage")}%
+                <section className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto text-center">
+                    {[
+                        { label: "Positive Feedback", value: getStatValue("positive_percentage"), color: "green" },
+                        { label: "Total Reviews", value: getStatValue("total_feedback"), color: "blue" },
+                        { label: "Average Rating", value: getStatValue("average_rating"), color: "orange" },
+                    ].map(({ label, value, color }) => (
+                        <div
+                            key={label}
+                            className={`p-8 rounded-3xl bg-${color}-50 dark:bg-${color}-900/20 shadow-lg shadow-${color}-300/30 dark:shadow-${color}-900/60 transition-colors duration-300`}
+                        >
+                            <p className={`text-4xl font-extrabold text-${color}-600 dark:text-${color}-400 mb-2`}>{value}{label === "Positive Feedback" ? "%" : ""}</p>
+                            <p className={`text-${color}-700 dark:text-${color}-300 font-semibold text-lg`}>{label}</p>
                         </div>
-                        <p className="text-green-700 dark:text-green-300 font-medium">Positive Feedback</p>
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl text-center transition-colors duration-300">
-                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                            {getStatValue("total_feedback")}
-                        </div>
-                        <p className="text-blue-700 dark:text-blue-300 font-medium">Total Reviews</p>
-                    </div>
-                    <div className="bg-orange-50 dark:bg-orange-900/20 p-6 rounded-xl text-center transition-colors duration-300">
-                        <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-                            {getStatValue("average_rating")}
-                        </div>
-                        <p className="text-orange-700 dark:text-orange-300 font-medium">Average Rating</p>
-                    </div>
-                </div>
-            </div>
-            <BackToTop/>
+                    ))}
+                </section>
+            </main>
+
+            <BackToTop />
             <Footer />
         </div>
     );
