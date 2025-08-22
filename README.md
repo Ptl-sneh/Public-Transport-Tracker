@@ -10,6 +10,7 @@ A comprehensive web application for managing and navigating public transportatio
 - **Interactive Maps**: Visual route representation with Leaflet.js integration
 - **Route Search**: Search for specific routes and view detailed information
 - **Stop Information**: Complete details about bus stops including coordinates
+- **Fare Calculator**: Estimate fares for the pass users
 
 ### 📅 Schedule Management
 

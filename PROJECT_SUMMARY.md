@@ -26,10 +26,10 @@ This is a **full-stack web application** designed to manage and navigate public 
 ### **Backend-Frontend Separation (Why This Architecture?)**
 
 ```
-┌─────────────────┐    HTTP/JSON API    ┌─────────────────┐
-│   React Frontend │ ←────────────────→ │  Django Backend │
-│   (User Interface)│                   │  (Business Logic)│
-└─────────────────┘                    └─────────────────┘
+┌─────────────────┐    HTTP/JSON API  ┌─────────────────┐
+│  React Frontend │ ←────────────────→│  Django Backend │
+│ (User Interface)│                   │ (Business Logic)│
+└─────────────────┘                   └─────────────────┘
 ```
 
 **Why This Separation?**

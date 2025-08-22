@@ -8,11 +8,13 @@ import SRoutes from './SRoutes'
 import FRoutes from './FRoutes'
 import Schedules from './Schedules'
 import Feedback from './Feedback'
+import ScrollToTop from '../components/ST'
 
 const MainPro = () => {
     return (
         <Router>
-            <Routes>    
+            <ScrollToTop />
+            <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

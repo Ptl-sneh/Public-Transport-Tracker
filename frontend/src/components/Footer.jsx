@@ -1,5 +1,6 @@
 import React from 'react'
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'
+import { FaFacebookF, FaTwitter, FaLinkedinIn, FaGithub } from "react-icons/fa";
 
 export default function Footer() {
     return (
@@ -16,14 +17,19 @@ export default function Footer() {
                             Making public transport accessible and convenient for everyone in Ahmedabad. Track buses, metros, and plan your journeys with real-time information.
                         </p>
                         <div className="flex space-x-6">
-                            {["f", "t", "i"].map((icon, i) => (
+                            {[
+                                { href: "https://www.facebook.com/", icon: <FaFacebookF className="w-6 h-6" />, label: "Facebook" },
+                                { href: "https://x.com/", icon: <FaTwitter className="w-6 h-6" />, label: "Twitter" },
+                                { href: "https://www.linkedin.com/in/ptlsneh/", icon: <FaLinkedinIn className="w-6 h-6" />, label: "LinkedIn" },
+                                { href: "https://github.com/", icon: <FaGithub className="w-6 h-6" />, label: "GitHub" },
+                            ].map(({ href, icon, label }) => (
                                 <a
-                                    key={i}
-                                    href="#"
-                                    className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors cursor-pointer focus:outline-none focus:ring-4 focus:ring-red-500"
-                                    aria-label={icon === "f" ? "Facebook" : icon === "t" ? "Twitter" : "Instagram"}
+                                    key={label}
+                                    href={href}
+                                    className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors cursor-pointer"
+                                    aria-label={label}
                                 >
-                                    <span className="text-white font-bold text-xl">{icon}</span>
+                                    {icon}
                                 </a>
                             ))}
                         </div>
@@ -56,8 +62,6 @@ export default function Footer() {
                         <nav className="flex flex-col space-y-3 text-lg">
                             {[
                                 { to: "/feedback", label: "Feedback" },
-                                { to: "#", label: "Help Center" },
-                                { to: "#", label: "Contact Us" },
                             ].map(({ to, label }) => (
                                 <Link
                                     key={label}
@@ -92,5 +96,5 @@ export default function Footer() {
                 </div>
             </div>
         </footer>
-    );
+    )
 }
