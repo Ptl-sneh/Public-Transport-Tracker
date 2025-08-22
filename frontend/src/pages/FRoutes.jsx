@@ -58,7 +58,7 @@ const FRoutes = () => {
 
         if (value.length > 1) {
             try {
-                const res = await Api.get("/stops/search/", { params: { q: value } });
+                const res = await Api.get("stops/search/", { params: { q: value } });
                 const uniqueStops = [...new Set(res.data.map((s) => s.name))];
                 setStopSuggestions((prev) => ({ ...prev, [name]: uniqueStops }));
             } catch (err) {
@@ -91,7 +91,7 @@ const FRoutes = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await Api.get("/find_route/", {
+            const response = await Api.get("find_route/", {
                 params: {
                     source: routeForm.source,
                     destination: routeForm.destination,
@@ -118,7 +118,6 @@ const FRoutes = () => {
                         transfer_point: route.transfer_point,
                         shape: route.shape || [],
                         steps: generateRouteSteps(route, routeForm.source, routeForm.destination),
-                        time: route.has_transfer ? "50 mins" : "35 mins",
                         changeover: route.has_transfer ? route.transfer_point : "None",
                         next_bus_eta: next_buses_text,
                     };
@@ -142,9 +141,15 @@ const FRoutes = () => {
 
     // ✅ Fetch favourites on load
     useEffect(() => {
-        Api.get("/favourites/")
-            .then((res) => setFavourites(res.data))
-            .catch((err) => console.error("Error fetching favourites:", err));
+        const fetchFavourites = async () => {
+            try {
+                const res = await Api.get("favourites/");
+                setFavourites(res.data);
+            } catch (err) {
+                console.error("❌ Error fetching favourites:", err.response?.data || err.message);
+            }
+        };
+        fetchFavourites();
     }, []);
 
     // ✅ Toggle favourite
@@ -158,11 +163,11 @@ const FRoutes = () => {
 
         try {
             if (existingFav) {
-                await Api.delete(`/favourites/${existingFav.id}/`);
+                await Api.delete(`favourites/${existingFav.id}/`);
                 setFavourites(favourites.filter((f) => f.id !== existingFav.id));
                 setAlertMessage(`🚫 Route "${route.route}" removed from favourites`);
             } else {
-                const res = await Api.post("/favourites/", {
+                const res = await Api.post("favourites/", {
                     route_identifier: route.route,
                     source: routeForm.source,
                     destination: routeForm.destination,
@@ -175,7 +180,7 @@ const FRoutes = () => {
             setTimeout(() => setAlertMessage(null), 3000);
 
         } catch (err) {
-            console.error("Error toggling favourite:", err);
+            console.error("Error toggling favourite:", err.response?.data || err.message);
             setAlertMessage("❌ Something went wrong. Try again.");
             setTimeout(() => setAlertMessage(null), 4000);
         }
@@ -300,7 +305,6 @@ const FRoutes = () => {
                                                 </span>
 
                                                 <div className="flex space-x-4 items-center text-sm text-gray-600 dark:text-gray-400">
-                                                    <span>⏱️ {result.time}</span>
                                                     <span>💰 {result.fare}</span>
                                                     <div key={result.id} className='mt-2'>
                                                         <div className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-600 rounded">
@@ -434,13 +438,12 @@ const FRoutes = () => {
                     onClose={closeFareModal}
                     route={selectedRouteForFare}
                     onFareCalculated={(fareData) => {
-                        // Optional: handle fare calculation completion
                         console.log('Fare calculated:', fareData);
                     }}
                 />
             )}
 
-            <BackToTop/>
+            <BackToTop />
             <Footer />
         </div>
     )

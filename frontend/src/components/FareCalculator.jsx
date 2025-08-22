@@ -126,7 +126,7 @@ const FareCalculator = ({ isOpen, onClose, route, onFareCalculated }) => {
                             <button
                                 onClick={calculateFare}
                                 disabled={fareLoading}
-                                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                                className="bg-red-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                             >
                                 {fareLoading ? "Calculating..." : "🔄 Recalculate"}
                             </button>
