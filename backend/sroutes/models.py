@@ -56,3 +56,33 @@ class Fare(models.Model):
 
     def __str__(self):
         return f"{self.route.name} - ₹{self.amount}"
+
+
+# ----------------------
+# Fare: Passes and Discounts
+# ----------------------
+class PassPlan(models.Model):
+    PERIOD_CHOICES = (
+        ("daily", "Daily"),
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+    )
+    name = models.CharField(max_length=50)
+    period = models.CharField(max_length=10, choices=PERIOD_CHOICES)
+    price = models.DecimalField(max_digits=7, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.name} ({self.period}) - ₹{self.price}"
+
+
+class UserTypeDiscount(models.Model):
+    USER_TYPES = (
+        ("default", "Default"),
+        ("student", "Student"),
+        ("senior", "Senior"),
+    )
+    user_type = models.CharField(max_length=20, choices=USER_TYPES, unique=True)
+    discount_pct = models.DecimalField(max_digits=4, decimal_places=2, help_text="0.50 for 50%")
+
+    def __str__(self):
+        return f"{self.user_type} - {self.discount_pct}"

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from home.serializers import StopSerializer
-from .models import BusRoute, TripPattern, TripPatternStop, RouteShape, Fare
+from .models import BusRoute, TripPattern, TripPatternStop, RouteShape, Fare, PassPlan, UserTypeDiscount
 
 
 class TripPatternStopSerializer(serializers.ModelSerializer):
@@ -29,6 +29,18 @@ class RouteShapeSerializer(serializers.ModelSerializer):
     class Meta:
         model = RouteShape
         fields = ['coordinates']
+
+
+class PassPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PassPlan
+        fields = ['id', 'name', 'period', 'price']
+
+
+class UserTypeDiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserTypeDiscount
+        fields = ['user_type', 'discount_pct']
 
 
 class BusRouteSerializer(serializers.ModelSerializer):

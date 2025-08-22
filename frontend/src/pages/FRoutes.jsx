@@ -8,6 +8,7 @@ import 'leaflet/dist/leaflet.css'
 import transferImg from '../icons/YRH.png'
 import busStopImg from '../icons/bus.png'
 import BackToTop from '../components/BackToTop'
+import FareCalculator from '../components/FareCalculator'
 
 const busStopIcon = L.icon({
     iconUrl: busStopImg,
@@ -44,6 +45,10 @@ const FRoutes = () => {
     const [favourites, setFavourites] = useState([]);
     const [selectedTime, setSelectedTime] = useState("");
     const [alertMessage, setAlertMessage] = useState(null);
+
+    // Fare Calculator & Passes state
+    const [showFareModal, setShowFareModal] = useState(false);
+    const [selectedRouteForFare, setSelectedRouteForFare] = useState(null);
 
 
     // ✅ Handle input change + fetch stop suggestions
@@ -174,6 +179,17 @@ const FRoutes = () => {
             setAlertMessage("❌ Something went wrong. Try again.");
             setTimeout(() => setAlertMessage(null), 4000);
         }
+    };
+
+    // Fare Calculator & Passes functions
+    const handleViewFare = async (route) => {
+        setSelectedRouteForFare(route);
+        setShowFareModal(true);
+    };
+
+    const closeFareModal = () => {
+        setShowFareModal(false);
+        setSelectedRouteForFare(null);
     };
 
     return (
@@ -314,6 +330,19 @@ const FRoutes = () => {
                                                 </p>
                                             )}
 
+                                            {/* View Fare Button */}
+                                            <div className="mb-3">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleViewFare(result);
+                                                    }}
+                                                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 shadow-md"
+                                                >
+                                                    💰 View Fare & Passes
+                                                </button>
+                                            </div>
+
                                             <div className="space-y-1">
                                                 {result.steps.map((step, index) => (
                                                     <div key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
@@ -397,6 +426,20 @@ const FRoutes = () => {
                     </div>
                 )}
             </div>
+
+            {/* Fare Calculator & Passes Modal */}
+            {showFareModal && (
+                <FareCalculator
+                    isOpen={showFareModal}
+                    onClose={closeFareModal}
+                    route={selectedRouteForFare}
+                    onFareCalculated={(fareData) => {
+                        // Optional: handle fare calculation completion
+                        console.log('Fare calculated:', fareData);
+                    }}
+                />
+            )}
+
             <BackToTop/>
             <Footer />
         </div>
