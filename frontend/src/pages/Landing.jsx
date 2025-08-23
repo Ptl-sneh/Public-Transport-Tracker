@@ -48,7 +48,7 @@ const Landing = () => {
                             <span className="block">Transport Tracker</span>
                         </h1>
                         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-                            Track Buses 🚍, Metros 🚆 & Easily Plan Your Daily Trips in One Place
+                            Track Buses 🚍, Easily Plan Your Daily Trips in One Place
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link to="/register">
@@ -123,9 +123,10 @@ const Landing = () => {
                             © 2025 - Making public transport smarter, faster & accessible for everyone 🚀
                         </p>
                         <div className="flex justify-center space-x-6 text-gray-400 text-lg">
-                            <a href="#" className="hover:text-orange-400 transition">Facebook</a>
-                            <a href="#" className="hover:text-orange-400 transition">Twitter</a>
-                            <a href="#" className="hover:text-orange-400 transition">Instagram</a>
+                            <a href="https://www.facebook.com/" className="hover:text-orange-400 transition">Facebook</a>
+                            <a href="https://x.com/" className="hover:text-orange-400 transition">Twitter</a>
+                            <a href="https://www.linkedin.com/in/ptlsneh/" className="hover:text-orange-400 transition">Linkedin</a>
+                            <a href="https://github.com/Ptl-sneh" className="hover:text-orange-400 transition">Github</a>
                         </div>
                     </div>
                 </footer>

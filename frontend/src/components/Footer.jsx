@@ -21,7 +21,7 @@ export default function Footer() {
                                 { href: "https://www.facebook.com/", icon: <FaFacebookF className="w-6 h-6" />, label: "Facebook" },
                                 { href: "https://x.com/", icon: <FaTwitter className="w-6 h-6" />, label: "Twitter" },
                                 { href: "https://www.linkedin.com/in/ptlsneh/", icon: <FaLinkedinIn className="w-6 h-6" />, label: "LinkedIn" },
-                                { href: "https://github.com/", icon: <FaGithub className="w-6 h-6" />, label: "GitHub" },
+                                { href: "https://github.com/Ptl-sneh", icon: <FaGithub className="w-6 h-6" />, label: "GitHub" },
                             ].map(({ href, icon, label }) => (
                                 <a
                                     key={label}
